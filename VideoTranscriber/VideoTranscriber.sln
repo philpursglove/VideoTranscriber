@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33626.354
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriber", "VideoTranscriber.csproj", "{107AD467-0CE3-4736-9F8F-73BC202C0993}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{107AD467-0CE3-4736-9F8F-73BC202C0993}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{107AD467-0CE3-4736-9F8F-73BC202C0993}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{107AD467-0CE3-4736-9F8F-73BC202C0993}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{107AD467-0CE3-4736-9F8F-73BC202C0993}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {54F73C3A-47CF-4996-B487-F00A1B42A2DD}
+	EndGlobalSection
+EndGlobal
