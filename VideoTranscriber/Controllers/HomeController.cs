@@ -26,7 +26,18 @@ namespace VideoTranscriber.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult Index(HomeIndexModel model)
+        {
+            if (ModelState.IsValid)
+            {
+
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
