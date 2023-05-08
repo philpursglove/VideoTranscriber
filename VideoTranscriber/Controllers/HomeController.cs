@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Azure.Storage.Blobs;
 using VideoTranscriber.Models;
 
 namespace VideoTranscriber.Controllers
@@ -7,10 +8,12 @@ namespace VideoTranscriber.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly string _connString;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _connString = configuration.GetConnectionString("VideoTranscriberStorageAccount");
         }
 
         public IActionResult Index()
@@ -34,7 +37,7 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
-
+                var blobServiceClient = new BlobServiceClient(_connString);
             }
 
             return RedirectToAction(nameof(Index));
