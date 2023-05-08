@@ -38,6 +38,10 @@ namespace VideoTranscriber.Controllers
             if (ModelState.IsValid)
             {
                 var blobServiceClient = new BlobServiceClient(_connString);
+                var containerClient = blobServiceClient.GetBlobContainerClient("videos");
+                var blobClient = containerClient.GetBlobClient(model.VideoFile.FileName);
+                blobClient.Upload(model.VideoFile.OpenReadStream());
+
             }
 
             return RedirectToAction(nameof(Index));
