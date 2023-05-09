@@ -40,8 +40,9 @@ namespace VideoTranscriber.Controllers
                 var blobServiceClient = new BlobServiceClient(_connString);
                 var containerClient = blobServiceClient.GetBlobContainerClient("videos");
                 var blobClient = containerClient.GetBlobClient(model.VideoFile.FileName);
-                blobClient.Upload(model.VideoFile.OpenReadStream());
+                var blobResponse = blobClient.Upload(model.VideoFile.OpenReadStream());
 
+                string videoUrl = blobClient.Uri.ToString();
             }
 
             return RedirectToAction(nameof(Index));
