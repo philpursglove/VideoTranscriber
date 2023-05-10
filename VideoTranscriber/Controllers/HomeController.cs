@@ -183,7 +183,6 @@ public class VideoIndexerResourceProviderClient
 
     public async Task<string> GetAccessToken(AccessTokenRequest accessTokenRequest)
     {
-        Console.WriteLine($"Getting access token. {JsonSerializer.Serialize(accessTokenRequest)}");
         // Set the generateAccessToken (from video indexer) HTTP request content
         var jsonRequestBody = JsonSerializer.Serialize(accessTokenRequest);
         var httpContent = new StringContent(jsonRequestBody, System.Text.Encoding.UTF8, "application/json");
@@ -202,7 +201,6 @@ public class VideoIndexerResourceProviderClient
     public async Task<Account> GetAccount()
     {
 
-        Console.WriteLine($"Getting account.");
         // Set request URI
         var requestUri = $"{_AzureResourceManager}/subscriptions/{_SubscriptionId}/resourcegroups/{_ResourceGroup}/providers/Microsoft.VideoIndexer/accounts/{_AccountName}/?api-version=2021-08-16-preview";
 
