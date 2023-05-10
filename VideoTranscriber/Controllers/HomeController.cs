@@ -4,13 +4,10 @@ using Azure.Storage.Blobs;
 using VideoTranscriber.Models;
 using Azure.Core;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Azure.Identity;
 using System.Web;
-using Azure.Storage.Blobs.Models;
 
 namespace VideoTranscriber.Controllers
 {
@@ -161,10 +158,10 @@ namespace VideoTranscriber.Controllers
 public class VideoIndexerResourceProviderClient
 {
     private readonly string armAaccessToken;
-    private readonly string _AzureResourceManager = "https://management.azure.com";
-    private readonly string _SubscriptionId = ""; // Your Azure subscription
-    private readonly string _ResourceGroup = ""; // Your resource group
-    private readonly string _AccountName = "";
+    private readonly string _AzureResourceManager;
+    private readonly string _SubscriptionId;
+    private readonly string _ResourceGroup;
+    private readonly string _AccountName;
 
     public VideoIndexerResourceProviderClient(string azureResourceManager, string subscriptionId, string accountName)
     {
