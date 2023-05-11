@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Web;
+using Azure;
+using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using VideoTranscriber.Models;
 using Newtonsoft.Json;
@@ -160,4 +162,16 @@ namespace VideoTranscriber.Controllers
     }
 }
 
-    
+public class TranscriptionData : ITableEntity
+{
+    public string PartitionKey { get; set; }
+    public string RowKey { get; set; }
+    public DateTimeOffset? Timestamp { get; set; }
+    public ETag ETag { get; set; }
+
+    public string Language { get; set; }
+
+    public string Transcript { get; set; }
+
+    public string OriginalFilename { get; set; }
+}
