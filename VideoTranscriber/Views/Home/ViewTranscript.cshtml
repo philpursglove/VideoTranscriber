@@ -1,0 +1,15 @@
+﻿@model VideoTranscriber.Controllers.ViewTranscriptViewModel
+@{
+    ViewData["Title"] = "View Transcript";
+}
+
+<div class="text-center">
+    <h2 class="display-4">View Transcript for @Model.Filename</h2>
+</div>
+<div>
+    <h3>Language: @Model.Language </h3>
+</div>
+
+<div>
+    @Model.Transcript
+</div>

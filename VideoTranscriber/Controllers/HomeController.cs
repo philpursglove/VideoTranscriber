@@ -28,7 +28,7 @@ namespace VideoTranscriber.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public IActionResult Index(HomeIndexModel model)
+        public async Task<IActionResult> Index(HomeIndexModel model)
         {
             if (ModelState.IsValid)
             {
@@ -39,13 +39,27 @@ namespace VideoTranscriber.Controllers
 
                 string videoUrl = blobClient.Uri.ToString();
 
-                IndexVideo(videoUrl, model.VideoFile.FileName).Wait();
+                Tuple<string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
+
+                return RedirectToAction("ViewTranscript", "Home", new {language = indexResult.Item1, transcript = indexResult.Item2, filename = model.VideoFile.FileName});
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task IndexVideo(string videoUrl, string videoName)
+        public IActionResult ViewTranscript(string language, string transcript, string fileName)
+        {
+            ViewTranscriptViewModel model = new ViewTranscriptViewModel()
+            {
+                Filename = fileName,
+                Language = language,
+                Transcript = transcript
+            };
+            
+            return View(model);
+        }
+
+        private async Task<Tuple<string, string>> IndexVideo(string videoUrl, string videoName)
         {
             var apiUrl = "https://api.videoindexer.ai";
             var location = "trial"; // replace with the account's location, or with “trial” if this is a trial account
@@ -97,6 +111,8 @@ namespace VideoTranscriber.Controllers
             client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
 
             // wait for the video index to finish
+            string assembledTranscript = "";
+            string language;
             while (true)
             {
                 Thread.Sleep(10000);
@@ -120,10 +136,9 @@ namespace VideoTranscriber.Controllers
 
                     var video = result.videos[0];
                     var insights = video.insights;
-                    string language = insights.sourceLanguage;
+                    language = insights.sourceLanguage;
                     var transcript = insights.transcript;
 
-                    string assembledTranscript = "";
                     foreach (var transcriptItem in transcript)
                     {
                         assembledTranscript += transcriptItem.text;
@@ -133,7 +148,15 @@ namespace VideoTranscriber.Controllers
                 }
             }
 
+            return new Tuple<string, string>(language, assembledTranscript);
         }
+    }
+
+    public class ViewTranscriptViewModel
+    {
+        public string Filename { get; set; }
+        public string Language { get; set; }
+        public string Transcript { get; set; }
     }
 }
 
