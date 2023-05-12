@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Web;
 using Azure;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
@@ -15,6 +13,9 @@ namespace VideoTranscriber.Controllers
         private readonly string _connString;
         private readonly string _accountId;
         private readonly string _apiKey;
+        private readonly Uri _tableUri;
+        private readonly string _storageAccountName;
+        private readonly string _storageAccountKey;
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
@@ -22,6 +23,9 @@ namespace VideoTranscriber.Controllers
             _connString = configuration.GetConnectionString("VideoTranscriberStorageAccount");
             _accountId = configuration["AccountId"];
             _apiKey = configuration["ApiKey"];
+            _tableUri = new Uri(configuration["TableUri"]);
+            _storageAccountName = configuration["StorageAccountName"];
+            _storageAccountKey = configuration["StorageAccountKey"];
         }
 
         public IActionResult Index()
@@ -34,11 +38,32 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
+                Guid videoGuid = Guid.NewGuid();
+                TranscriptionData data = new TranscriptionData
+                {
+                    OriginalFilename = model.VideoFile.FileName,
+                    VideoId = videoGuid,
+                    RowKey = videoGuid.ToString(),
+                    PartitionKey = "Transcriptions"
+                };
+                TableServiceClient tableServiceClient =
+                    new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
+                TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
+                await tableClient.CreateIfNotExistsAsync();
+                await tableClient.AddEntityAsync(data);
+
                 var videoUrl = await TransferToAzureStorage(model);
 
                 Tuple<string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
 
-                return RedirectToAction("ViewTranscript", "Home", new {language = indexResult.Item1, transcript = indexResult.Item2, filename = model.VideoFile.FileName});
+                TranscriptionData updateData =
+                    await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoGuid.ToString(),
+                        partitionKey: "Transcriptions");
+                updateData.Language = indexResult.Item1;
+                updateData.Transcript = indexResult.Item2;
+                await tableClient.UpdateEntityAsync(updateData, ETag.All);
+
+                return RedirectToAction("ViewTranscript", "Home", new {videoId = videoGuid});
             }
 
             return RedirectToAction(nameof(Index));
@@ -54,13 +79,20 @@ namespace VideoTranscriber.Controllers
             return blobClient.Uri.ToString();
         }
 
-        public IActionResult ViewTranscript(string language, string transcript, string fileName)
+        public async Task<IActionResult> ViewTranscript(Guid videoId)
         {
+            TableServiceClient tableServiceClient =
+                new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
+            TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
+            TranscriptionData transcriptData =
+                await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoId.ToString(),
+                    partitionKey: "Transcriptions");
+
             ViewTranscriptViewModel model = new ViewTranscriptViewModel()
             {
-                Filename = fileName,
-                Language = language,
-                Transcript = transcript
+                Filename = transcriptData.OriginalFilename,
+                Language = transcriptData.Language,
+                Transcript = transcriptData.Transcript
             };
             
             return View(model);
