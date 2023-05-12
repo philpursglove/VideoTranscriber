@@ -16,6 +16,7 @@ namespace VideoTranscriber.Controllers
         private readonly Uri _tableUri;
         private readonly string _storageAccountName;
         private readonly string _storageAccountKey;
+        private readonly string _location;
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
@@ -26,6 +27,7 @@ namespace VideoTranscriber.Controllers
             _tableUri = new Uri(configuration["TableUri"]);
             _storageAccountName = configuration["StorageAccountName"];
             _storageAccountKey = configuration["StorageAccountKey"];
+            _location = configuration["Location"];
         }
 
         public IActionResult Index()
@@ -101,7 +103,7 @@ namespace VideoTranscriber.Controllers
         private async Task<Tuple<string, string>> IndexVideo(string videoUrl, string videoName)
         {
             var apiUrl = "https://api.videoindexer.ai";
-            var location = "trial"; // replace with the account's location, or with “trial” if this is a trial account
+            
 
             System.Net.ServicePointManager.SecurityProtocol = System.Net.ServicePointManager.SecurityProtocol | System.Net.SecurityProtocolType.Tls12;
 
@@ -112,7 +114,7 @@ namespace VideoTranscriber.Controllers
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
 
             // obtain account access token
-            var accountAccessTokenRequestResult = client.GetAsync($"{apiUrl}/auth/{location}/Accounts/{_accountId}/AccessToken?allowEdit=true").Result;
+            var accountAccessTokenRequestResult = client.GetAsync($"{apiUrl}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true").Result;
             var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
             client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
@@ -136,7 +138,7 @@ namespace VideoTranscriber.Controllers
                 correctedName = correctedName.Substring(0, 80);
             }
 
-            var uploadRequestResult = client.PostAsync($"{apiUrl}/{location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&description=some_description&privacy=private&partition=some_partition&videoUrl={videoUrl}&indexingPreset=BasicAudio", content).Result;
+            var uploadRequestResult = client.PostAsync($"{apiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&description=some_description&privacy=private&partition=some_partition&videoUrl={videoUrl}&indexingPreset=BasicAudio", content).Result;
             var uploadResult = uploadRequestResult.Content.ReadAsStringAsync().Result;
 
             // get the video id from the upload result
@@ -144,7 +146,7 @@ namespace VideoTranscriber.Controllers
 
             // obtain video access token
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
-            var videoTokenRequestResult = client.GetAsync($"{apiUrl}/auth/{location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true").Result;
+            var videoTokenRequestResult = client.GetAsync($"{apiUrl}/auth/{_location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true").Result;
             var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
             client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
@@ -156,7 +158,7 @@ namespace VideoTranscriber.Controllers
             {
                 Thread.Sleep(10000);
 
-                var videoGetIndexRequestResult = client.GetAsync($"{apiUrl}/{location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English").Result;
+                var videoGetIndexRequestResult = client.GetAsync($"{apiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English").Result;
                 var videoGetIndexResult = videoGetIndexRequestResult.Content.ReadAsStringAsync().Result;
 
                 var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
