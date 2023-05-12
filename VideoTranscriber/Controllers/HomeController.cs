@@ -56,13 +56,14 @@ namespace VideoTranscriber.Controllers
 
                 var videoUrl = await TransferToAzureStorage(model);
 
-                Tuple<string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
+                Tuple<string, string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
 
                 TranscriptionData updateData =
                     await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoGuid.ToString(),
                         partitionKey: "Transcriptions");
                 updateData.Language = indexResult.Item1;
                 updateData.Transcript = indexResult.Item2;
+                updateData.Duration = indexResult.Item3;
                 await tableClient.UpdateEntityAsync(updateData, ETag.All);
 
                 return RedirectToAction("ViewTranscript", "Home", new {videoId = videoGuid});
@@ -100,7 +101,7 @@ namespace VideoTranscriber.Controllers
             return View(model);
         }
 
-        private async Task<Tuple<string, string>> IndexVideo(string videoUrl, string videoName)
+        private async Task<Tuple<string, string, string>> IndexVideo(string videoUrl, string videoName)
         {
             var apiUrl = "https://api.videoindexer.ai";
             
@@ -154,6 +155,7 @@ namespace VideoTranscriber.Controllers
             // wait for the video index to finish
             string assembledTranscript = "";
             string language;
+            string duration;
             while (true)
             {
                 Thread.Sleep(10000);
@@ -177,6 +179,7 @@ namespace VideoTranscriber.Controllers
 
                     var video = result.videos[0];
                     var insights = video.insights;
+                    duration = insights.duration;
                     language = insights.sourceLanguage;
                     var transcript = insights.transcript;
 
@@ -189,7 +192,7 @@ namespace VideoTranscriber.Controllers
                 }
             }
 
-            return new Tuple<string, string>(language, assembledTranscript);
+            return new Tuple<string, string, string>(language, assembledTranscript, duration);
         }
     }
 
@@ -217,4 +220,6 @@ public class TranscriptionData : ITableEntity
     public Guid VideoId { get; set; }
 
     public Guid BatchId { get; set; }
+
+    public string Duration { get; set; }
 }
