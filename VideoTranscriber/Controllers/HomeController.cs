@@ -34,12 +34,7 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
-                var blobServiceClient = new BlobServiceClient(_connString);
-                var containerClient = blobServiceClient.GetBlobContainerClient("videos");
-                var blobClient = containerClient.GetBlobClient(model.VideoFile.FileName);
-                var blobResponse = blobClient.Upload(model.VideoFile.OpenReadStream(), true);
-
-                string videoUrl = blobClient.Uri.ToString();
+                var videoUrl = await TransferToAzureStorage(model);
 
                 Tuple<string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
 
@@ -47,6 +42,16 @@ namespace VideoTranscriber.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<string> TransferToAzureStorage(HomeIndexModel model)
+        {
+            var blobServiceClient = new BlobServiceClient(_connString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("videos");
+            var blobClient = containerClient.GetBlobClient(model.VideoFile.FileName);
+            await blobClient.UploadAsync(model.VideoFile.OpenReadStream(), true);
+
+            return blobClient.Uri.ToString();
         }
 
         public IActionResult ViewTranscript(string language, string transcript, string fileName)
@@ -174,4 +179,8 @@ public class TranscriptionData : ITableEntity
     public string Transcript { get; set; }
 
     public string OriginalFilename { get; set; }
+
+    public Guid VideoId { get; set; }
+
+    public Guid BatchId { get; set; }
 }
