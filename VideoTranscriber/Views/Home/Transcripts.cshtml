@@ -1,0 +1,43 @@
+﻿@model IEnumerable<TranscriptionData>
+
+@{
+    ViewData["Title"] = "Transcripts";
+}
+
+<h1>Transcripts</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Language)
+            </th>
+            <th>
+                Original Filename
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Duration)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Language)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.OriginalFilename)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Duration)
+            </td>
+            <td>
+                @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.VideoId }) |
+                @Html.ActionLink("Download", "DownloadTranscript", new { videoId = item.VideoId })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

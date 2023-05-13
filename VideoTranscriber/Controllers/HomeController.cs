@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using Azure;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
@@ -193,6 +194,34 @@ namespace VideoTranscriber.Controllers
             }
 
             return new Tuple<string, string, string>(language, assembledTranscript, duration);
+        }
+
+        public IActionResult Transcripts()
+        {
+            TableServiceClient tableServiceClient =
+                new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
+            TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
+
+            var transcripts = tableClient.Query<TranscriptionData>().ToList();
+
+            return View(transcripts.Where(t => t.Transcript != null));
+        }
+
+        public async Task<IActionResult> DownloadTranscript(Guid videoId)
+        {
+            TableServiceClient tableServiceClient =
+                new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
+            TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
+            TranscriptionData transcriptData =
+                await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoId.ToString(),
+                    partitionKey: "Transcriptions");
+
+            FileContentResult result = new FileContentResult(Encoding.UTF8.GetBytes(transcriptData.Transcript), "text/plain")
+            {
+                FileDownloadName = transcriptData.OriginalFilename + ".txt",
+            };
+
+            return result;
         }
     }
 
