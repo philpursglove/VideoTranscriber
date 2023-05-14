@@ -43,20 +43,20 @@ namespace VideoTranscriber.Controllers
                     RowKey = videoGuid.ToString(),
                     PartitionKey = "Transcriptions"
                 };
-                
+
                 await _transcriptionDataRepository.Add(data);
 
                 var videoUrl = await TransferToAzureStorage(model);
 
-                Tuple<string, string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
+                IndexingResult indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
 
                 TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
-                updateData.Language = indexResult.Item1;
-                updateData.Transcript = indexResult.Item2;
-                updateData.Duration = indexResult.Item3;
+                updateData.Language = indexResult.Language;
+                updateData.Transcript = indexResult.Transcript;
+                updateData.Duration = indexResult.Duration;
                 await _transcriptionDataRepository.Update(updateData);
 
-                return RedirectToAction("ViewTranscript", "Home", new {videoId = videoGuid});
+                return RedirectToAction("ViewTranscript", "Home", new { videoId = videoGuid });
             }
 
             return RedirectToAction(nameof(Index));
@@ -83,14 +83,14 @@ namespace VideoTranscriber.Controllers
                 Language = transcriptData.Language,
                 Transcript = transcriptData.Transcript
             };
-            
+
             return View(model);
         }
 
-        private async Task<Tuple<string, string, string>> IndexVideo(string videoUrl, string videoName)
+        private async Task<IndexingResult> IndexVideo(string videoUrl, string videoName)
         {
             var apiUrl = "https://api.videoindexer.ai";
-            
+
 
             System.Net.ServicePointManager.SecurityProtocol = System.Net.ServicePointManager.SecurityProtocol | System.Net.SecurityProtocolType.Tls12;
 
@@ -159,7 +159,7 @@ namespace VideoTranscriber.Controllers
                 if (processingState != "Uploaded" && processingState != "Processing")
                 {
                     //Debug.WriteLine("");
-                   // Debug.WriteLine("Full JSON:");
+                    // Debug.WriteLine("Full JSON:");
                     //Debug.WriteLine(videoGetIndexResult);
                     var result = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult);
 
@@ -178,7 +178,7 @@ namespace VideoTranscriber.Controllers
                 }
             }
 
-            return new Tuple<string, string, string>(language, assembledTranscript, duration);
+            return new IndexingResult(){Duration = duration, Language = language, Transcript = assembledTranscript};
         }
 
         public async Task<IActionResult> Transcripts()
@@ -207,5 +207,12 @@ namespace VideoTranscriber.Controllers
         public string Filename { get; set; }
         public string Language { get; set; }
         public string Transcript { get; set; }
+    }
+
+    public class IndexingResult
+    {
+        public string Language { get; set; }
+        public string Transcript { get; set; }
+        public string Duration { get; set; }
     }
 }
