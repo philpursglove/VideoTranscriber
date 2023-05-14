@@ -1,9 +1,15 @@
 using Microsoft.AspNetCore.Http.Features;
+using VideoTranscriber;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped(typeof(ITranscriptionDataRepository), 
+    (sp) => new TranscriptionDataTableRepository(builder.Configuration["StorageAccountName"], 
+        builder.Configuration["StorageAccountKey"],
+        new Uri(builder.Configuration["TableUri"])));
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {

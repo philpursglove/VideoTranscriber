@@ -1,7 +1,5 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using Azure;
-using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using VideoTranscriber.Models;
 using Newtonsoft.Json;
@@ -14,20 +12,16 @@ namespace VideoTranscriber.Controllers
         private readonly string _connString;
         private readonly string _accountId;
         private readonly string _apiKey;
-        private readonly Uri _tableUri;
-        private readonly string _storageAccountName;
-        private readonly string _storageAccountKey;
         private readonly string _location;
+        private readonly ITranscriptionDataRepository _transcriptionDataRepository;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository)
         {
             _logger = logger;
             _connString = configuration.GetConnectionString("VideoTranscriberStorageAccount");
             _accountId = configuration["AccountId"];
             _apiKey = configuration["ApiKey"];
-            _tableUri = new Uri(configuration["TableUri"]);
-            _storageAccountName = configuration["StorageAccountName"];
-            _storageAccountKey = configuration["StorageAccountKey"];
+            _transcriptionDataRepository = transcriptionDataRepository;
             _location = configuration["Location"];
         }
 
@@ -49,23 +43,18 @@ namespace VideoTranscriber.Controllers
                     RowKey = videoGuid.ToString(),
                     PartitionKey = "Transcriptions"
                 };
-                TableServiceClient tableServiceClient =
-                    new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
-                TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
-                await tableClient.CreateIfNotExistsAsync();
-                await tableClient.AddEntityAsync(data);
+                
+                await _transcriptionDataRepository.Add(data);
 
                 var videoUrl = await TransferToAzureStorage(model);
 
                 Tuple<string, string, string> indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
 
-                TranscriptionData updateData =
-                    await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoGuid.ToString(),
-                        partitionKey: "Transcriptions");
+                TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
                 updateData.Language = indexResult.Item1;
                 updateData.Transcript = indexResult.Item2;
                 updateData.Duration = indexResult.Item3;
-                await tableClient.UpdateEntityAsync(updateData, ETag.All);
+                await _transcriptionDataRepository.Update(updateData);
 
                 return RedirectToAction("ViewTranscript", "Home", new {videoId = videoGuid});
             }
@@ -85,12 +74,8 @@ namespace VideoTranscriber.Controllers
 
         public async Task<IActionResult> ViewTranscript(Guid videoId)
         {
-            TableServiceClient tableServiceClient =
-                new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
-            TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
             TranscriptionData transcriptData =
-                await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoId.ToString(),
-                    partitionKey: "Transcriptions");
+                await _transcriptionDataRepository.Get(videoId);
 
             ViewTranscriptViewModel model = new ViewTranscriptViewModel()
             {
@@ -196,25 +181,17 @@ namespace VideoTranscriber.Controllers
             return new Tuple<string, string, string>(language, assembledTranscript, duration);
         }
 
-        public IActionResult Transcripts()
+        public async Task<IActionResult> Transcripts()
         {
-            TableServiceClient tableServiceClient =
-                new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
-            TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
+            var transcripts = await _transcriptionDataRepository.GetAll();
 
-            var transcripts = tableClient.Query<TranscriptionData>().ToList();
-
-            return View(transcripts.Where(t => t.Transcript != null));
+            return View(transcripts.Where(t => t.Transcript != string.Empty));
         }
 
         public async Task<IActionResult> DownloadTranscript(Guid videoId)
         {
-            TableServiceClient tableServiceClient =
-                new TableServiceClient(_tableUri, new TableSharedKeyCredential(_storageAccountName, _storageAccountKey));
-            TableClient tableClient = tableServiceClient.GetTableClient("Transcriptions");
             TranscriptionData transcriptData =
-                await tableClient.GetEntityAsync<TranscriptionData>(rowKey: videoId.ToString(),
-                    partitionKey: "Transcriptions");
+                await _transcriptionDataRepository.Get(videoId);
 
             FileContentResult result = new FileContentResult(Encoding.UTF8.GetBytes(transcriptData.Transcript), "text/plain")
             {
@@ -231,24 +208,4 @@ namespace VideoTranscriber.Controllers
         public string Language { get; set; }
         public string Transcript { get; set; }
     }
-}
-
-public class TranscriptionData : ITableEntity
-{
-    public string PartitionKey { get; set; }
-    public string RowKey { get; set; }
-    public DateTimeOffset? Timestamp { get; set; }
-    public ETag ETag { get; set; }
-
-    public string Language { get; set; }
-
-    public string Transcript { get; set; }
-
-    public string OriginalFilename { get; set; }
-
-    public Guid VideoId { get; set; }
-
-    public Guid BatchId { get; set; }
-
-    public string Duration { get; set; }
 }
