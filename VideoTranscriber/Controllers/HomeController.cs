@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 using VideoTranscriber.Models;
 using Newtonsoft.Json;
 
@@ -56,11 +57,34 @@ namespace VideoTranscriber.Controllers
                 updateData.Duration = indexResult.Duration;
                 await _transcriptionDataRepository.Update(updateData);
 
+                await MoveVideoToProcessed(model.VideoFile.FileName);
+
                 return RedirectToAction("ViewTranscript", "Home", new { videoId = videoGuid });
             }
 
             return RedirectToAction(nameof(Index));
         }
+
+        private async Task MoveVideoToProcessed(string fileName)
+        {
+            var blobServiceClient = new BlobServiceClient(_connString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("videos");
+            var sourceBlobClient = containerClient.GetBlobClient(fileName);
+            var destBlobClient = containerClient.GetBlockBlobClient("processed/" + fileName);
+            var copy = destBlobClient.StartCopyFromUriAsync(sourceBlobClient.Uri);
+            while (true)
+            {
+                copy.Wait();
+                if (copy.Status == TaskStatus.RanToCompletion)
+                {
+                    break;
+                }
+                Thread.Sleep(1000);
+            }
+
+            await sourceBlobClient.DeleteAsync();
+        }
+
 
         private async Task<string> TransferToAzureStorage(HomeIndexModel model)
         {
@@ -178,7 +202,7 @@ namespace VideoTranscriber.Controllers
                 }
             }
 
-            return new IndexingResult(){Duration = duration, Language = language, Transcript = assembledTranscript};
+            return new IndexingResult() { Duration = duration, Language = language, Transcript = assembledTranscript };
         }
 
         public async Task<IActionResult> Transcripts()
