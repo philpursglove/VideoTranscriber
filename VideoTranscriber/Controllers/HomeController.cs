@@ -40,7 +40,9 @@ namespace VideoTranscriber.Controllers
                     OriginalFilename = model.VideoFile.FileName,
                     VideoId = videoGuid,
                     RowKey = videoGuid.ToString(),
-                    PartitionKey = "Transcriptions"
+                    PartitionKey = "Transcriptions",
+                    ProjectName = model.ProjectName,
+                    UploadDate = DateTime.Now
                 };
 
                 await _transcriptionDataRepository.Add(data);
@@ -178,6 +180,13 @@ namespace VideoTranscriber.Controllers
             var transcripts = await _transcriptionDataRepository.GetAll();
 
             return View(transcripts.Where(t => t.Transcript != string.Empty));
+        }
+
+        public async Task<IActionResult> TranscriptsForProject(string projectName)
+        {
+            var transcripts = await _transcriptionDataRepository.GetAll();
+
+            return View("Transcripts", transcripts.Where(t => t.ProjectName == projectName));
         }
 
         public async Task<IActionResult> DownloadTranscript(Guid videoId)

@@ -19,4 +19,8 @@ public class TranscriptionData : ITableEntity
     public Guid BatchId { get; set; }
 
     public string Duration { get; set; }
+
+    public string ProjectName { get; set; }
+
+    public DateTime UploadDate { get; set; }
 }
