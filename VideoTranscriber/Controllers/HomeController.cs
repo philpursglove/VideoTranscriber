@@ -119,7 +119,7 @@ namespace VideoTranscriber.Controllers
                 correctedName = correctedName.Substring(0, 80);
             }
 
-            var uploadRequestResult = client.PostAsync($"{apiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&description=some_description&privacy=private&partition=some_partition&videoUrl={videoUrl}&indexingPreset=BasicAudio", content).Result;
+            var uploadRequestResult = client.PostAsync($"{apiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&description=some_description&privacy=private&partition=some_partition&videoUrl={videoUrl}&indexingPreset=AudioOnly", content).Result;
             var uploadResult = uploadRequestResult.Content.ReadAsStringAsync().Result;
 
             // get the video id from the upload result
