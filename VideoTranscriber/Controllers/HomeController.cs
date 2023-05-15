@@ -15,8 +15,9 @@ namespace VideoTranscriber.Controllers
         private readonly string _apiKey;
         private readonly string _location;
         private readonly ITranscriptionDataRepository _transcriptionDataRepository;
+        private readonly IStorageClient _storageClient;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository, IStorageClient storageClient)
         {
             _logger = logger;
             _connString = configuration.GetConnectionString("VideoTranscriberStorageAccount");
@@ -24,6 +25,7 @@ namespace VideoTranscriber.Controllers
             _apiKey = configuration["ApiKey"];
             _transcriptionDataRepository = transcriptionDataRepository;
             _location = configuration["Location"];
+            _storageClient = storageClient;
         }
 
         public IActionResult Index()
@@ -47,7 +49,8 @@ namespace VideoTranscriber.Controllers
 
                 await _transcriptionDataRepository.Add(data);
 
-                var videoUrl = await TransferToAzureStorage(model);
+                var videoUrl =
+                    await _storageClient.UploadFile(model.VideoFile.FileName, model.VideoFile.OpenReadStream());
 
                 IndexingResult indexResult = await IndexVideo(videoUrl, model.VideoFile.FileName);
 
@@ -57,43 +60,12 @@ namespace VideoTranscriber.Controllers
                 updateData.Duration = indexResult.Duration;
                 await _transcriptionDataRepository.Update(updateData);
 
-                await MoveVideoToProcessed(model.VideoFile.FileName);
+                await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
 
                 return RedirectToAction("ViewTranscript", "Home", new { videoId = videoGuid });
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task MoveVideoToProcessed(string fileName)
-        {
-            var blobServiceClient = new BlobServiceClient(_connString);
-            var containerClient = blobServiceClient.GetBlobContainerClient("videos");
-            var sourceBlobClient = containerClient.GetBlobClient(fileName);
-            var destBlobClient = containerClient.GetBlockBlobClient("processed/" + fileName);
-            var copy = destBlobClient.StartCopyFromUriAsync(sourceBlobClient.Uri);
-            while (true)
-            {
-                copy.Wait();
-                if (copy.Status == TaskStatus.RanToCompletion)
-                {
-                    break;
-                }
-                Thread.Sleep(1000);
-            }
-
-            await sourceBlobClient.DeleteAsync();
-        }
-
-
-        private async Task<string> TransferToAzureStorage(HomeIndexModel model)
-        {
-            var blobServiceClient = new BlobServiceClient(_connString);
-            var containerClient = blobServiceClient.GetBlobContainerClient("videos");
-            var blobClient = containerClient.GetBlobClient(model.VideoFile.FileName);
-            await blobClient.UploadAsync(model.VideoFile.OpenReadStream(), true);
-
-            return blobClient.Uri.ToString();
         }
 
         public async Task<IActionResult> ViewTranscript(Guid videoId)
@@ -111,7 +83,7 @@ namespace VideoTranscriber.Controllers
             return View(model);
         }
 
-        private async Task<IndexingResult> IndexVideo(string videoUrl, string videoName)
+        private async Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName)
         {
             var apiUrl = "https://api.videoindexer.ai";
 

@@ -10,6 +10,9 @@ builder.Services.AddScoped(typeof(ITranscriptionDataRepository),
     (sp) => new TranscriptionDataTableRepository(builder.Configuration["StorageAccountName"], 
         builder.Configuration["StorageAccountKey"],
         new Uri(builder.Configuration["TableUri"])));
+builder.Services.AddScoped(typeof(IStorageClient),
+    (sp) => new AzureStorageClient(builder.Configuration.GetConnectionString("VideoTranscriberStorageAccount"),
+        builder.Configuration["ContainerName"]));
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
