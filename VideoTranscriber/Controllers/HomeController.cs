@@ -1,7 +1,5 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Specialized;
 using VideoTranscriber.Models;
 using Newtonsoft.Json;
 
@@ -10,7 +8,6 @@ namespace VideoTranscriber.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly string _connString;
         private readonly string _accountId;
         private readonly string _apiKey;
         private readonly string _location;
@@ -20,7 +17,6 @@ namespace VideoTranscriber.Controllers
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository, IStorageClient storageClient)
         {
             _logger = logger;
-            _connString = configuration.GetConnectionString("VideoTranscriberStorageAccount");
             _accountId = configuration["AccountId"];
             _apiKey = configuration["ApiKey"];
             _transcriptionDataRepository = transcriptionDataRepository;
