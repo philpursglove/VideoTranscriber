@@ -1,4 +1,4 @@
-﻿namespace VideoTranscriber.Models;
+﻿namespace VideoTranscriber.ViewModels;
 
 public class HomeIndexModel
 {
