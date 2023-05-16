@@ -31,4 +31,6 @@ public class TranscriptionData : ITableEntity
     public double Confidence { get; set; }
 
     public string Keywords { get; set; }
+
+    public string Speakers { get; set; }
 }

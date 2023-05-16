@@ -8,4 +8,5 @@ public class IndexingResult
     public int SpeakerCount { get; set; }
     public double Confidence { get; set; }
     public IEnumerable<string> Keywords { get; set; }
+    public IEnumerable<Speaker> Speakers { get; set; }
 }

@@ -55,6 +55,7 @@ namespace VideoTranscriber.Controllers
                 updateData.SpeakerCount = indexResult.SpeakerCount;
                 updateData.Confidence = indexResult.Confidence;
                 updateData.Keywords = JsonConvert.SerializeObject(indexResult.Keywords);
+                updateData.Speakers = JsonConvert.SerializeObject(indexResult.Speakers);
                 await _transcriptionDataRepository.Update(updateData);
 
                 await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
@@ -75,7 +76,8 @@ namespace VideoTranscriber.Controllers
                 Filename = transcriptData.OriginalFilename,
                 Language = transcriptData.Language,
                 Transcript = JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript),
-                Keywords = JsonConvert.DeserializeObject<IEnumerable<string>>(transcriptData.Keywords)
+                Keywords = JsonConvert.DeserializeObject<IEnumerable<string>>(transcriptData.Keywords),
+                Speakers = JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers)
             };
 
             return View(model);

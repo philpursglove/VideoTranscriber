@@ -16,18 +16,20 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Id</th>
             <th>Start Time</th>
+            <th>Speaker</th>
             <th></th>
+            <th>Confidence</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var element in Model.Transcript.OrderBy(t => t.Id))
         {
             <tr>
-                <td>@element.Id</td>
                 <td>@element.StartTimeIndex</td>
+                <td>@Model.Speakers.First(s => s.Id == element.SpeakerId).Name</td>
                 <td>@element.Text</td>
+                <td>@element.Confidence</td>
             </tr>
         }
     </tbody>

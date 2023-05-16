@@ -72,6 +72,7 @@ public class VideoIndexerClient
         string language;
         string duration;
         int speakerCount;
+        List<Speaker> speakers = new List<Speaker>();
         List<string> keywords = new List<string>();
         while (true)
         {
@@ -98,7 +99,12 @@ public class VideoIndexerClient
                 var insights = video.insights;
                 duration = insights.duration;
                 language = insights.sourceLanguage;
-                speakerCount = insights.speakers.Count;
+
+                foreach (var speaker in insights.speakers)
+                {
+                    speakers.Add(new Speaker { Id = speaker.id, Name = speaker.name });
+                }
+                speakerCount = speakers.Count;
 
                 foreach (var keyword in insights.keywords)
                 {
@@ -114,7 +120,8 @@ public class VideoIndexerClient
                         Text = transcriptItem.text,
                         Confidence = transcriptItem.confidence,
                         Id = transcriptItem.id,
-                        StartTimeIndex = transcriptItem.instances[0].start
+                        StartTimeIndex = transcriptItem.instances[0].start,
+                        SpeakerId = transcriptItem.speakerId
                     };
                     transcriptElements.Add(element);
                 }
@@ -125,6 +132,6 @@ public class VideoIndexerClient
 
         return new IndexingResult() { Duration = duration, Language = language, 
             Transcript = transcriptElements, Confidence = transcriptElements.Average(e => e.Confidence), 
-            SpeakerCount = speakerCount, Keywords = keywords};
+            SpeakerCount = speakerCount, Keywords = keywords, Speakers = speakers};
     }
 }
