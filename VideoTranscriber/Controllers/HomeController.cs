@@ -124,5 +124,37 @@ namespace VideoTranscriber.Controllers
 
             return result;
         }
+
+        public async Task<IActionResult> EditSpeakers(Guid videoId)
+        {
+            TranscriptionData transcriptData =
+                await _transcriptionDataRepository.Get(videoId);
+
+            IEnumerable<Speaker> speakers =
+                JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers);
+
+            EditSpeakersViewModel model = new EditSpeakersViewModel()
+            {
+                VideoId = videoId,
+                Speakers = speakers
+            };
+
+            return View(model);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSpeakers(EditSpeakersViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                TranscriptionData transcriptData =
+                    await _transcriptionDataRepository.Get(model.VideoId);
+                transcriptData.Speakers = JsonConvert.SerializeObject(model.Speakers);
+                await _transcriptionDataRepository.Update(transcriptData);
+                return RedirectToAction("ViewTranscript", new { videoId = model.VideoId });
+            }
+
+            return View(model);
+        }
     }
 }

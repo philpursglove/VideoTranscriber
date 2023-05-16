@@ -1,0 +1,18 @@
+﻿@model VideoTranscriber.ViewModels.EditSpeakersViewModel
+@{
+    ViewData["Title"] = "Edit Speakers";
+}
+
+<form method="post">
+    <input type="hidden" asp-for="VideoId" value="@Model.VideoId"/>
+    
+    @for (int i = 0; i < Model.Speakers.ToArray().Count(); i++)
+    {
+        <div>
+            <input type="hidden" value="@Model.Speakers.ToArray()[i].Id" name="Speakers[@i].Id" />
+            <input type="text" value="@Model.Speakers.ToArray()[i].Name" name="Speakers[@i].Name" />
+        </div>
+    }
+
+    <input type="submit" value="Save"/>
+</form>
