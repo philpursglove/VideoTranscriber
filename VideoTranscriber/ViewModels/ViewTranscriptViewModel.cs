@@ -9,4 +9,5 @@ public class ViewTranscriptViewModel
     public IEnumerable<TranscriptElement> Transcript { get; set; }
     public IEnumerable<string> Keywords { get; set; }
     public IEnumerable<Speaker> Speakers { get; set; }
+    public Guid VideoId { get; set; }
 }

@@ -7,6 +7,9 @@
     <h2 class="display-4">Transcript for @Model.Filename</h2>
 </div>
 <div>
+    @Html.ActionLink("Download", "DownloadTranscript", new { videoId = Model.VideoId })
+</div>
+<div>
     <h3>Language: @Model.Language </h3>
 </div>
 <div>

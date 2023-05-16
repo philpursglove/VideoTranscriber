@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using VideoTranscriber.Models;
 using Newtonsoft.Json;
@@ -14,7 +13,8 @@ namespace VideoTranscriber.Controllers
         private readonly IStorageClient _storageClient;
         private readonly VideoIndexerClient _videoIndexerClient;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository, IStorageClient storageClient, VideoIndexerClient videoIndexerClient)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository, 
+            IStorageClient storageClient, VideoIndexerClient videoIndexerClient)
         {
             _logger = logger;
             _transcriptionDataRepository = transcriptionDataRepository;
@@ -79,7 +79,8 @@ namespace VideoTranscriber.Controllers
                 Language = transcriptData.Language,
                 Transcript = JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript),
                 Keywords = JsonConvert.DeserializeObject<IEnumerable<string>>(transcriptData.Keywords),
-                Speakers = JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers)
+                Speakers = JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers),
+                VideoId = videoId
             };
 
             return View(model);
