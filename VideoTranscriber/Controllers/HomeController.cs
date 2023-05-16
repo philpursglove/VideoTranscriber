@@ -42,7 +42,7 @@ namespace VideoTranscriber.Controllers
                     RowKey = videoGuid.ToString(),
                     PartitionKey = "Transcriptions",
                     ProjectName = model.ProjectName,
-                    UploadDate = DateTime.Now
+                    UploadDate = DateTime.UtcNow
                 };
 
                 await _transcriptionDataRepository.Add(data);
@@ -54,8 +54,10 @@ namespace VideoTranscriber.Controllers
 
                 TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
                 updateData.Language = indexResult.Language;
-                updateData.Transcript = indexResult.Transcript;
+                updateData.Transcript = JsonConvert.SerializeObject(indexResult.Transcript);
                 updateData.Duration = indexResult.Duration;
+                updateData.SpeakerCount = indexResult.SpeakerCount;
+                updateData.Confidence = indexResult.Confidence;
                 await _transcriptionDataRepository.Update(updateData);
 
                 await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
@@ -75,7 +77,7 @@ namespace VideoTranscriber.Controllers
             {
                 Filename = transcriptData.OriginalFilename,
                 Language = transcriptData.Language,
-                Transcript = transcriptData.Transcript
+                Transcript = JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript)
             };
 
             return View(model);
@@ -133,9 +135,10 @@ namespace VideoTranscriber.Controllers
             client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
 
             // wait for the video index to finish
-            string assembledTranscript = "";
+            List<TranscriptElement> transcriptElements = new List<TranscriptElement>();
             string language;
             string duration;
+            int speakerCount;
             while (true)
             {
                 Thread.Sleep(10000);
@@ -161,25 +164,33 @@ namespace VideoTranscriber.Controllers
                     var insights = video.insights;
                     duration = insights.duration;
                     language = insights.sourceLanguage;
+                    speakerCount = insights.speakers.Count;
                     var transcript = insights.transcript;
 
                     foreach (var transcriptItem in transcript)
                     {
-                        assembledTranscript += transcriptItem.text;
+                        TranscriptElement element = new TranscriptElement
+                        {
+                            Text = transcriptItem.text,
+                            Confidence = transcriptItem.confidence,
+                            Id = transcriptItem.id,
+                            StartTimeIndex = transcriptItem.instances[0].start
+                        };
+                        transcriptElements.Add(element);
                     }
 
                     break;
                 }
             }
 
-            return new IndexingResult() { Duration = duration, Language = language, Transcript = assembledTranscript };
+            return new IndexingResult() { Duration = duration, Language = language, Transcript = transcriptElements, Confidence = transcriptElements.Average(e => e.Confidence), SpeakerCount = speakerCount};
         }
 
         public async Task<IActionResult> Transcripts()
         {
             var transcripts = await _transcriptionDataRepository.GetAll();
 
-            return View(transcripts.Where(t => t.Transcript != string.Empty));
+            return View(transcripts.Where(t => t.Transcript.Any()));
         }
 
         public async Task<IActionResult> TranscriptsForProject(string projectName)
@@ -194,12 +205,12 @@ namespace VideoTranscriber.Controllers
             TranscriptionData transcriptData =
                 await _transcriptionDataRepository.Get(videoId);
 
-            FileContentResult result = new FileContentResult(Encoding.UTF8.GetBytes(transcriptData.Transcript), "text/plain")
-            {
-                FileDownloadName = transcriptData.OriginalFilename + ".txt",
-            };
+            //FileContentResult result = new FileContentResult(Encoding.UTF8.GetBytes(transcriptData.Transcript), "text/plain")
+            //{
+            //    FileDownloadName = transcriptData.OriginalFilename + ".txt",
+            //};
 
-            return result;
+            return null;
         }
     }
 
@@ -207,13 +218,23 @@ namespace VideoTranscriber.Controllers
     {
         public string Filename { get; set; }
         public string Language { get; set; }
-        public string Transcript { get; set; }
+        public IEnumerable<TranscriptElement> Transcript { get; set; }
     }
 
     public class IndexingResult
     {
         public string Language { get; set; }
-        public string Transcript { get; set; }
+        public IEnumerable<TranscriptElement> Transcript { get; set; }
         public string Duration { get; set; }
+        public int SpeakerCount { get; set; }
+        public double Confidence { get; set; }
+    }
+
+    public class TranscriptElement
+    {
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public double Confidence { get; set; }
+        public string StartTimeIndex { get; set; }
     }
 }

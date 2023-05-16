@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.Data.Tables;
+using VideoTranscriber.Controllers;
 
 public class TranscriptionData : ITableEntity
 {
@@ -23,4 +24,8 @@ public class TranscriptionData : ITableEntity
     public string ProjectName { get; set; }
 
     public DateTime UploadDate { get; set; }
+
+    public int SpeakerCount { get; set; }
+
+    public double Confidence { get; set; }
 }

@@ -4,12 +4,28 @@
 }
 
 <div class="text-center">
-    <h2 class="display-4">View Transcript for @Model.Filename</h2>
+    <h2 class="display-4">Transcript for @Model.Filename</h2>
 </div>
 <div>
     <h3>Language: @Model.Language </h3>
 </div>
 
-<div>
-    @Model.Transcript
-</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Start Time</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var element in Model.Transcript)
+        {
+            <tr>
+                <td>@element.Id</td>
+                <td>@element.StartTimeIndex</td>
+                <td>@element.Text</td>
+            </tr>
+        }
+    </tbody>
+</table>
