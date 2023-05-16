@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections;
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using VideoTranscriber.Models;
 using Newtonsoft.Json;
 using VideoTranscriber.ViewModels;
@@ -101,13 +103,25 @@ namespace VideoTranscriber.Controllers
         {
             TranscriptionData transcriptData =
                 await _transcriptionDataRepository.Get(videoId);
+            IEnumerable<TranscriptElement> elements =
+                JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript);
+            IEnumerable<Speaker> speakers =
+                JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers);
 
-            //FileContentResult result = new FileContentResult(Encoding.UTF8.GetBytes(transcriptData.Transcript), "text/plain")
-            //{
-            //    FileDownloadName = transcriptData.OriginalFilename + ".txt",
-            //};
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine("Start Time,Speaker,Text,Confidence");
+            foreach (var element in elements)
+            {
+                builder.AppendLine(string.Join(",", element.StartTimeIndex,
+                    speakers.First(s => s.Id == element.SpeakerId).Name, "\"" + element.Text.Replace("\"","'") + "\"", element.Confidence));
+            }
 
-            return null;
+            FileContentResult result = new FileContentResult(Encoding.UTF8.GetBytes(builder.ToString()), "text/csv")
+            {
+                FileDownloadName = transcriptData.OriginalFilename + ".csv",
+            };
+
+            return result;
         }
     }
 }
