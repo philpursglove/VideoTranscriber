@@ -22,6 +22,9 @@
             @Html.DisplayNameFor(model => model.Duration)
         </th>
         <th>
+            Speakers
+        </th>
+        <th>
             @Html.DisplayNameFor(m => m.Confidence)
         </th>
         <th></th>
@@ -41,6 +44,9 @@
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.Duration)
+        </td>
+        <td>
+            @Html.DisplayFor(m => item.SpeakerCount)
         </td>
         <td>
             @Html.DisplayFor(m => item.Confidence)
