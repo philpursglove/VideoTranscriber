@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.Features;
 using VideoTranscriber;
+using VideoTranscriber.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,9 @@ builder.Services.AddScoped(typeof(ITranscriptionDataRepository),
 builder.Services.AddScoped(typeof(IStorageClient),
     (sp) => new AzureStorageClient(builder.Configuration.GetConnectionString("VideoTranscriberStorageAccount"),
         builder.Configuration["ContainerName"]));
+builder.Services.AddScoped(typeof(VideoIndexerClient),
+    (sp) => new VideoIndexerClient(builder.Configuration["ApiKey"], builder.Configuration["AccountId"],
+        builder.Configuration["Location"]));
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
