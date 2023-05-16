@@ -29,4 +29,6 @@ public class TranscriptionData : ITableEntity
 
     [DisplayFormat(DataFormatString = "{0:F2}")]
     public double Confidence { get; set; }
+
+    public string Keywords { get; set; }
 }

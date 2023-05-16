@@ -57,6 +57,7 @@ namespace VideoTranscriber.Controllers
                 updateData.Duration = indexResult.Duration;
                 updateData.SpeakerCount = indexResult.SpeakerCount;
                 updateData.Confidence = indexResult.Confidence;
+                updateData.Keywords = JsonConvert.SerializeObject(indexResult.Keywords);
                 await _transcriptionDataRepository.Update(updateData);
 
                 await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
@@ -76,7 +77,8 @@ namespace VideoTranscriber.Controllers
             {
                 Filename = transcriptData.OriginalFilename,
                 Language = transcriptData.Language,
-                Transcript = JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript)
+                Transcript = JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript),
+                Keywords = JsonConvert.DeserializeObject<IEnumerable<string>>(transcriptData.Keywords)
             };
 
             return View(model);
@@ -138,6 +140,7 @@ namespace VideoTranscriber.Controllers
             string language;
             string duration;
             int speakerCount;
+            List<string> keywords = new List<string>();
             while (true)
             {
                 Thread.Sleep(10000);
@@ -164,6 +167,12 @@ namespace VideoTranscriber.Controllers
                     duration = insights.duration;
                     language = insights.sourceLanguage;
                     speakerCount = insights.speakers.Count;
+
+                    foreach (var keyword in insights.keywords)
+                    {
+                        keywords.Add((string)keyword.text);
+                    }
+
                     var transcript = insights.transcript;
 
                     foreach (var transcriptItem in transcript)
@@ -182,7 +191,9 @@ namespace VideoTranscriber.Controllers
                 }
             }
 
-            return new IndexingResult() { Duration = duration, Language = language, Transcript = transcriptElements, Confidence = transcriptElements.Average(e => e.Confidence), SpeakerCount = speakerCount};
+            return new IndexingResult() { Duration = duration, Language = language, 
+                Transcript = transcriptElements, Confidence = transcriptElements.Average(e => e.Confidence), 
+                SpeakerCount = speakerCount, Keywords = keywords};
         }
 
         public async Task<IActionResult> Transcripts()
@@ -218,6 +229,7 @@ namespace VideoTranscriber.Controllers
         public string Filename { get; set; }
         public string Language { get; set; }
         public IEnumerable<TranscriptElement> Transcript { get; set; }
+        public IEnumerable<string> Keywords { get; set; }
     }
 
     public class IndexingResult
@@ -227,6 +239,7 @@ namespace VideoTranscriber.Controllers
         public string Duration { get; set; }
         public int SpeakerCount { get; set; }
         public double Confidence { get; set; }
+        public IEnumerable<string> Keywords { get; set; }
     }
 
     public class TranscriptElement
