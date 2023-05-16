@@ -1,6 +1,6 @@
-﻿using Azure;
+﻿using System.ComponentModel.DataAnnotations;
+using Azure;
 using Azure.Data.Tables;
-using VideoTranscriber.Controllers;
 
 public class TranscriptionData : ITableEntity
 {
@@ -27,5 +27,6 @@ public class TranscriptionData : ITableEntity
 
     public int SpeakerCount { get; set; }
 
+    [DisplayFormat(DataFormatString = "{0:F2}")]
     public double Confidence { get; set; }
 }

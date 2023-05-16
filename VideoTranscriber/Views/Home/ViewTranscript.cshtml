@@ -19,7 +19,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var element in Model.Transcript)
+        @foreach (var element in Model.Transcript.OrderBy(t => t.Id))
         {
             <tr>
                 <td>@element.Id</td>
