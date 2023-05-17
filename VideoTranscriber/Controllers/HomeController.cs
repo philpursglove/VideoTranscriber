@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using VideoTranscriber.Models;
-using Newtonsoft.Json;
 using VideoTranscriber.ViewModels;
 
 namespace VideoTranscriber.Controllers
