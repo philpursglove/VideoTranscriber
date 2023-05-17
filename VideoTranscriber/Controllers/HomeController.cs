@@ -12,7 +12,7 @@ namespace VideoTranscriber.Controllers
         private readonly IStorageClient _storageClient;
         private readonly VideoIndexerClient _videoIndexerClient;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ITranscriptionDataRepository transcriptionDataRepository, 
+        public HomeController(ILogger<HomeController> logger, ITranscriptionDataRepository transcriptionDataRepository, 
             IStorageClient storageClient, VideoIndexerClient videoIndexerClient)
         {
             _logger = logger;
