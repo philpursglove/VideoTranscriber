@@ -50,12 +50,12 @@ namespace VideoTranscriber.Controllers
 
                 TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
                 updateData.Language = indexResult.Language;
-                updateData.Transcript = JsonConvert.SerializeObject(indexResult.Transcript);
+                updateData.Transcript = indexResult.Transcript;
                 updateData.Duration = indexResult.Duration;
                 updateData.SpeakerCount = indexResult.SpeakerCount;
                 updateData.Confidence = indexResult.Confidence;
-                updateData.Keywords = JsonConvert.SerializeObject(indexResult.Keywords);
-                updateData.Speakers = JsonConvert.SerializeObject(indexResult.Speakers);
+                updateData.Keywords = indexResult.Keywords;
+                updateData.Speakers = indexResult.Speakers;
                 await _transcriptionDataRepository.Update(updateData);
 
                 await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
@@ -75,9 +75,9 @@ namespace VideoTranscriber.Controllers
             {
                 Filename = transcriptData.OriginalFilename,
                 Language = transcriptData.Language,
-                Transcript = JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript),
-                Keywords = JsonConvert.DeserializeObject<IEnumerable<string>>(transcriptData.Keywords),
-                Speakers = JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers),
+                Transcript = transcriptData.Transcript,
+                Keywords = transcriptData.Keywords,
+                Speakers = transcriptData.Speakers,
                 VideoId = videoId
             };
 
@@ -103,9 +103,9 @@ namespace VideoTranscriber.Controllers
             TranscriptionData transcriptData =
                 await _transcriptionDataRepository.Get(videoId);
             IEnumerable<TranscriptElement> elements =
-                JsonConvert.DeserializeObject<IEnumerable<TranscriptElement>>(transcriptData.Transcript);
+                transcriptData.Transcript;
             IEnumerable<Speaker> speakers =
-                JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers);
+                transcriptData.Speakers;
 
             StringBuilder builder = new StringBuilder();
             builder.AppendLine("Start Time,Speaker,Text,Confidence");
@@ -129,7 +129,7 @@ namespace VideoTranscriber.Controllers
                 await _transcriptionDataRepository.Get(videoId);
 
             IEnumerable<Speaker> speakers =
-                JsonConvert.DeserializeObject<IEnumerable<Speaker>>(transcriptData.Speakers);
+                transcriptData.Speakers;
 
             EditSpeakersViewModel model = new EditSpeakersViewModel()
             {
@@ -147,7 +147,7 @@ namespace VideoTranscriber.Controllers
             {
                 TranscriptionData transcriptData =
                     await _transcriptionDataRepository.Get(model.VideoId);
-                transcriptData.Speakers = JsonConvert.SerializeObject(model.Speakers);
+                transcriptData.Speakers = model.Speakers;
                 await _transcriptionDataRepository.Update(transcriptData);
                 return RedirectToAction("ViewTranscript", new { videoId = model.VideoId });
             }

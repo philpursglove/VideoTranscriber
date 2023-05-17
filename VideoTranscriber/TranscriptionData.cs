@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Azure;
 using Azure.Data.Tables;
+using VideoTranscriber.Models;
 
 public class TranscriptionData
 {
@@ -8,7 +9,7 @@ public class TranscriptionData
 
     public string Language { get; set; }
 
-    public string Transcript { get; set; }
+    public IEnumerable<TranscriptElement> Transcript { get; set; }
 
     public string OriginalFilename { get; set; }
 
@@ -27,7 +28,7 @@ public class TranscriptionData
     [DisplayFormat(DataFormatString = "{0:F2}")]
     public double Confidence { get; set; }
 
-    public string Keywords { get; set; }
+    public IEnumerable<string> Keywords { get; set; }
 
-    public string Speakers { get; set; }
+    public IEnumerable<Speaker> Speakers { get; set; }
 }
