@@ -49,12 +49,18 @@ namespace VideoTranscriber.Controllers
 
                 IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, model.VideoFile.FileName);
 
+                string[] durationElements = indexResult.Duration.Split(':');
+                int hours = int.Parse(durationElements[0]);
+                int minutes = int.Parse(durationElements[1]);
+                int seconds = (int)Math.Round(double.Parse(durationElements[2]));
+                TimeSpan duration = new TimeSpan(hours, minutes, seconds);
+
                 DateTime endTime = DateTime.UtcNow;
 
                 TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
                 updateData.Language = indexResult.Language;
                 updateData.Transcript = indexResult.Transcript;
-                updateData.Duration = indexResult.Duration;
+                updateData.Duration = duration.TotalSeconds;
                 updateData.SpeakerCount = indexResult.SpeakerCount;
                 updateData.Confidence = indexResult.Confidence;
                 updateData.Keywords = indexResult.Keywords;

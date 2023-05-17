@@ -13,7 +13,7 @@
             Project Name
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Language)
+            Source Language
         </th>
         <th>
             Original Filename
@@ -43,7 +43,10 @@
             @Html.DisplayFor(modelItem => item.OriginalFilename)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.Duration)
+        @{
+            TimeSpan duration = TimeSpan.FromSeconds(item.Duration);
+            @duration.ToString(@"hh\:mm\:ss")
+        }
         </td>
         <td>
             @Html.DisplayFor(m => item.SpeakerCount)

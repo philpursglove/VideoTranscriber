@@ -17,7 +17,7 @@ public class TranscriptionData
 
     public Guid BatchId { get; set; }
 
-    public string Duration { get; set; }
+    public double Duration { get; set; }
 
     public string ProjectName { get; set; }
 
