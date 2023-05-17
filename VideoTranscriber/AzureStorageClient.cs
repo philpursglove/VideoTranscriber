@@ -3,12 +3,6 @@ using Azure.Storage.Blobs.Specialized;
 
 namespace VideoTranscriber;
 
-public interface IStorageClient
-{
-    public Task<Uri> UploadFile(string filename, Stream content);
-    public Task MoveToFolder(string filename, string targetFolder);
-}
-
 public class AzureStorageClient : IStorageClient
 {
     private readonly string _connectionString;
