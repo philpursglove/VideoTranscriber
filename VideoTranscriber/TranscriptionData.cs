@@ -31,4 +31,6 @@ public class TranscriptionData
     public IEnumerable<string> Keywords { get; set; }
 
     public IEnumerable<Speaker> Speakers { get; set; }
+
+    public TimeSpan IndexDuration { get; set; }
 }

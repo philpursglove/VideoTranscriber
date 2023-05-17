@@ -45,7 +45,11 @@ namespace VideoTranscriber.Controllers
                 var videoUrl =
                     await _storageClient.UploadFile(model.VideoFile.FileName, model.VideoFile.OpenReadStream());
 
+                DateTime startTime = DateTime.UtcNow;
+
                 IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, model.VideoFile.FileName);
+
+                DateTime endTime = DateTime.UtcNow;
 
                 TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
                 updateData.Language = indexResult.Language;
@@ -55,6 +59,7 @@ namespace VideoTranscriber.Controllers
                 updateData.Confidence = indexResult.Confidence;
                 updateData.Keywords = indexResult.Keywords;
                 updateData.Speakers = indexResult.Speakers;
+                updateData.IndexDuration = endTime - startTime;
                 await _transcriptionDataRepository.Update(updateData);
 
                 await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
