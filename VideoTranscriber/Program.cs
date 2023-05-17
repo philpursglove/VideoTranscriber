@@ -7,10 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped(typeof(ITranscriptionDataRepository), 
-    (sp) => new TranscriptionDataTableRepository(builder.Configuration["StorageAccountName"], 
-        builder.Configuration["StorageAccountKey"],
-        new Uri(builder.Configuration["TableUri"])));
+builder.Services.AddScoped(typeof(ITranscriptionDataRepository),
+    (sp) => new TranscriptionDataCosmosRepository(builder.Configuration.GetConnectionString("VideoTranscriberCosmosDb")));
 builder.Services.AddScoped(typeof(IStorageClient),
     (sp) => new AzureStorageClient(builder.Configuration.GetConnectionString("VideoTranscriberStorageAccount"),
         builder.Configuration["ContainerName"]));

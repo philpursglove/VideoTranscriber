@@ -2,12 +2,9 @@
 using Azure;
 using Azure.Data.Tables;
 
-public class TranscriptionData : ITableEntity
+public class TranscriptionData
 {
-    public string PartitionKey { get; set; }
-    public string RowKey { get; set; }
-    public DateTimeOffset? Timestamp { get; set; }
-    public ETag ETag { get; set; }
+    public Guid id { get; set; }
 
     public string Language { get; set; }
 

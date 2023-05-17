@@ -52,8 +52,8 @@
             @Html.DisplayFor(m => item.Confidence)
         </td>
         <td>
-            @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.VideoId }) |
-            @Html.ActionLink("Download", "DownloadTranscript", new { videoId = item.VideoId })
+            @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.id }) |
+            @Html.ActionLink("Download", "DownloadTranscript", new { videoId = item.id })
         </td>
     </tr>
 }

@@ -36,9 +36,7 @@ namespace VideoTranscriber.Controllers
                 TranscriptionData data = new TranscriptionData
                 {
                     OriginalFilename = model.VideoFile.FileName,
-                    VideoId = videoGuid,
-                    RowKey = videoGuid.ToString(),
-                    PartitionKey = "Transcriptions",
+                    id = videoGuid,
                     ProjectName = model.ProjectName,
                     UploadDate = DateTime.UtcNow
                 };
@@ -65,7 +63,7 @@ namespace VideoTranscriber.Controllers
                 return RedirectToAction("ViewTranscript", "Home", new { videoId = videoGuid });
             }
 
-            return RedirectToAction(nameof(Index));
+            return View(model);
         }
 
         public async Task<IActionResult> ViewTranscript(Guid videoId)
