@@ -2,6 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using VideoTranscriber.Models;
 using VideoTranscriber.ViewModels;
+using VideoTranscriberCore;
+using VideoTranscriberData;
+using VideoTranscriberStorage;
+using VideoTranscriberVideoClient;
 
 namespace VideoTranscriber.Controllers
 {

@@ -1,4 +1,5 @@
 ﻿using VideoTranscriber.Models;
+using VideoTranscriberCore;
 
 namespace VideoTranscriber.ViewModels;
 

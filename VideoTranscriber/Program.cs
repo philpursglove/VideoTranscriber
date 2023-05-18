@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Http.Features;
 using VideoTranscriber;
 using VideoTranscriber.Controllers;
+using VideoTranscriberData;
+using VideoTranscriberStorage;
+using VideoTranscriberVideoClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
