@@ -18,13 +18,13 @@ builder.Services.AddScoped(typeof(VideoIndexerClient),
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
-    options.Limits.MaxRequestBodySize = 268435456;
+    options.Limits.MaxRequestBodySize = 1073741824;
 });
 
 builder.Services.Configure<FormOptions>(options =>
 {
     // Set the limit to 256 MB
-    options.MultipartBodyLengthLimit = 268435456;
+    options.MultipartBodyLengthLimit = 1073741824;
 });
 
 var app = builder.Build();
