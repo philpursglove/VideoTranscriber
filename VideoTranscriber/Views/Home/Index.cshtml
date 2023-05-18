@@ -7,9 +7,17 @@
 
 <div>
     <form enctype="multipart/form-data" method="POST" asp-action="Index">
-        <input type="file" asp-for="VideoFile" />
+        <input type="file" asp-for="VideoFile1" />
         <br/>
-        Project: <input asp-for="ProjectName"/>
+        <input type="file" asp-for="VideoFile2" />
+        <br/>
+        <input type="file" asp-for="VideoFile3" />
+        <br/>
+        <input type="file" asp-for="VideoFile4" />
+        <br />
+        <input type="file" asp-for="VideoFile5" />
+        <br />
+        Project: <input asp-for="ProjectName" />
         <br/>
         <input type="submit" value="Upload" />
 

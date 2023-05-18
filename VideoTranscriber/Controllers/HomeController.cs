@@ -31,46 +31,54 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
-                Guid videoGuid = Guid.NewGuid();
-                TranscriptionData data = new TranscriptionData
+                var existingTranscripts = await _transcriptionDataRepository.GetAll();
+
+                foreach (IFormFile file in Request.Form.Files)
                 {
-                    OriginalFilename = model.VideoFile.FileName,
-                    id = videoGuid,
-                    ProjectName = model.ProjectName,
-                    UploadDate = DateTime.UtcNow
-                };
+                    if (!existingTranscripts.Any(t => t.OriginalFilename == file.FileName))
+                    {
 
-                await _transcriptionDataRepository.Add(data);
+                        Guid videoGuid = Guid.NewGuid();
+                        TranscriptionData data = new TranscriptionData
+                        {
+                            OriginalFilename = file.FileName,
+                            id = videoGuid,
+                            ProjectName = model.ProjectName,
+                            UploadDate = DateTime.UtcNow
+                        };
 
-                var videoUrl =
-                    await _storageClient.UploadFile(model.VideoFile.FileName, model.VideoFile.OpenReadStream());
+                        await _transcriptionDataRepository.Add(data);
 
-                DateTime startTime = DateTime.UtcNow;
+                        var videoUrl =
+                            await _storageClient.UploadFile(file.FileName, file.OpenReadStream());
 
-                IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, model.VideoFile.FileName);
+                        DateTime startTime = DateTime.UtcNow;
 
-                string[] durationElements = indexResult.Duration.Split(':');
-                int hours = int.Parse(durationElements[0]);
-                int minutes = int.Parse(durationElements[1]);
-                int seconds = (int)Math.Round(double.Parse(durationElements[2]));
-                TimeSpan duration = new TimeSpan(hours, minutes, seconds);
+                        IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, file.FileName);
 
-                DateTime endTime = DateTime.UtcNow;
+                        string[] durationElements = indexResult.Duration.Split(':');
+                        int hours = int.Parse(durationElements[0]);
+                        int minutes = int.Parse(durationElements[1]);
+                        int seconds = (int)Math.Round(double.Parse(durationElements[2]));
+                        TimeSpan duration = new TimeSpan(hours, minutes, seconds);
 
-                TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
-                updateData.Language = indexResult.Language;
-                updateData.Transcript = indexResult.Transcript;
-                updateData.Duration = duration.TotalSeconds;
-                updateData.SpeakerCount = indexResult.SpeakerCount;
-                updateData.Confidence = indexResult.Confidence;
-                updateData.Keywords = indexResult.Keywords;
-                updateData.Speakers = indexResult.Speakers;
-                updateData.IndexDuration = endTime - startTime;
-                await _transcriptionDataRepository.Update(updateData);
+                        DateTime endTime = DateTime.UtcNow;
 
-                await _storageClient.MoveToFolder(model.VideoFile.FileName, "processed");
+                        TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
+                        updateData.Language = indexResult.Language;
+                        updateData.Transcript = indexResult.Transcript;
+                        updateData.Duration = duration.TotalSeconds;
+                        updateData.SpeakerCount = indexResult.SpeakerCount;
+                        updateData.Confidence = indexResult.Confidence;
+                        updateData.Keywords = indexResult.Keywords;
+                        updateData.Speakers = indexResult.Speakers;
+                        updateData.IndexDuration = endTime - startTime;
+                        await _transcriptionDataRepository.Update(updateData);
 
-                return RedirectToAction("ViewTranscript", "Home", new { videoId = videoGuid });
+                        await _storageClient.MoveToFolder(file.FileName, "processed");
+                    }
+                }
+                return RedirectToAction("Transcripts", "Home");
             }
 
             return View(model);
