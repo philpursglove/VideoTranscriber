@@ -1,4 +1,6 @@
-﻿namespace VideoTranscriber;
+﻿using VideoTranscriberCore;
+
+namespace VideoTranscriberData;
 
 public interface ITranscriptionDataRepository
 {

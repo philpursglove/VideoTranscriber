@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
+using VideoTranscriberCore;
 
-namespace VideoTranscriber;
+namespace VideoTranscriberData;
 
 public class TranscriptionDataCosmosRepository : ITranscriptionDataRepository
 {
