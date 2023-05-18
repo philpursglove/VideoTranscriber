@@ -1,4 +1,4 @@
-﻿namespace VideoTranscriber;
+﻿namespace VideoTranscriberStorage;
 
 public interface IStorageClient
 {

@@ -1,7 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 
-namespace VideoTranscriber;
+namespace VideoTranscriberStorage;
 
 public class AzureStorageClient : IStorageClient
 {
