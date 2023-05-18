@@ -50,7 +50,7 @@ namespace VideoTranscriber.Controllers
                         await _transcriptionDataRepository.Add(data);
 
                         var videoUrl =
-                            await _storageClient.UploadFile(file.FileName, file.OpenReadStream());
+                            await _storageClient.UploadFile(file.FileName, file.OpenReadStream(), "toBeProcessed");
 
                         DateTime startTime = DateTime.UtcNow;
 

@@ -14,11 +14,11 @@ public class AzureStorageClient : IStorageClient
         _containerName = containerName;
     }
 
-    public async Task<Uri> UploadFile(string filename, Stream content)
+    public async Task<Uri> UploadFile(string filename, Stream content, string folderName)
     {
         var blobServiceClient = new BlobServiceClient(_connectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
-        var blobClient = containerClient.GetBlobClient(filename);
+        var blobClient = containerClient.GetBlobClient(Path.Join(folderName, filename));
         var stream = await blobClient.OpenWriteAsync(true);
         await content.CopyToAsync(stream);
         stream.Close();
