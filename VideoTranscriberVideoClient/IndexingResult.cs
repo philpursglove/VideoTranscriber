@@ -1,4 +1,6 @@
-﻿namespace VideoTranscriber.Models;
+﻿using VideoTranscriberCore;
+
+namespace VideoTranscriberVideoClient;
 
 public class IndexingResult
 {

@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
-using VideoTranscriber.Models;
+using VideoTranscriberCore;
 
-namespace VideoTranscriber.Controllers;
+namespace VideoTranscriberVideoClient;
 
 public class VideoIndexerClient
 {
