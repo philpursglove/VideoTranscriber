@@ -1,4 +1,4 @@
-﻿namespace VideoTranscriber.Models;
+﻿namespace VideoTranscriberCore;
 
 public class TranscriptElement
 {
@@ -7,10 +7,4 @@ public class TranscriptElement
     public double Confidence { get; set; }
     public string StartTimeIndex { get; set; }
     public int SpeakerId { get; set; }
-}
-
-public class Speaker
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
 }

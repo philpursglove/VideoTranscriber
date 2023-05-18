@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Azure;
-using Azure.Data.Tables;
-using VideoTranscriber.Models;
+
+namespace VideoTranscriberCore;
 
 public class TranscriptionData
 {
