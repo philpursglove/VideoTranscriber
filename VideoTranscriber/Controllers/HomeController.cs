@@ -54,7 +54,7 @@ namespace VideoTranscriber.Controllers
 
                         DateTime startTime = DateTime.UtcNow;
 
-                        IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, file.FileName);
+                        IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, file.FileName, videoGuid);
 
                         string[] durationElements = indexResult.Duration.Split(':');
                         int hours = int.Parse(durationElements[0]);

@@ -16,7 +16,7 @@ public class VideoIndexerClient
         _location = location;
     }
 
-    public async Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName)
+    public async Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
     {
         var apiUrl = "https://api.videoindexer.ai";
 
@@ -54,7 +54,7 @@ public class VideoIndexerClient
             correctedName = correctedName.Substring(0, 80);
         }
 
-        var uploadRequestResult = client.PostAsync($"{apiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&description=some_description&privacy=private&partition=some_partition&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming", content).Result;
+        var uploadRequestResult = client.PostAsync($"{apiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid.ToString()}", content).Result;
         var uploadResult = uploadRequestResult.Content.ReadAsStringAsync().Result;
 
         // get the video id from the upload result
