@@ -56,30 +56,6 @@ namespace VideoTranscriber.Controllers
                         var videoUrl =
                             await _storageClient.UploadFile(file.FileName, file.OpenReadStream(), "toBeProcessed");
 
-                        DateTime startTime = DateTime.UtcNow;
-
-                        IndexingResult indexResult = await _videoIndexerClient.IndexVideo(videoUrl, file.FileName, videoGuid);
-
-                        string[] durationElements = indexResult.Duration.Split(':');
-                        int hours = int.Parse(durationElements[0]);
-                        int minutes = int.Parse(durationElements[1]);
-                        int seconds = (int)Math.Round(double.Parse(durationElements[2]));
-                        TimeSpan duration = new TimeSpan(hours, minutes, seconds);
-
-                        DateTime endTime = DateTime.UtcNow;
-
-                        TranscriptionData updateData = await _transcriptionDataRepository.Get(videoGuid);
-                        updateData.Language = indexResult.Language;
-                        updateData.Transcript = indexResult.Transcript;
-                        updateData.Duration = duration.TotalSeconds;
-                        updateData.SpeakerCount = indexResult.SpeakerCount;
-                        updateData.Confidence = indexResult.Confidence;
-                        updateData.Keywords = indexResult.Keywords;
-                        updateData.Speakers = indexResult.Speakers;
-                        updateData.IndexDuration = endTime - startTime;
-                        await _transcriptionDataRepository.Update(updateData);
-
-                        await _storageClient.MoveToFolder(file.FileName, "processed");
                     }
                 }
                 return RedirectToAction("Transcripts", "Home");
@@ -110,7 +86,7 @@ namespace VideoTranscriber.Controllers
         {
             var transcripts = await _transcriptionDataRepository.GetAll();
 
-            return View(transcripts.Where(t => t.Transcript.Any()));
+            return View(transcripts.Where(t => t.Transcript != null && t.Transcript.Any()).ToList());
         }
 
         public async Task<IActionResult> TranscriptsForProject(string projectName)
