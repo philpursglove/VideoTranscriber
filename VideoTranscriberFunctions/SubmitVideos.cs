@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using VideoTranscriberCore;
+using VideoTranscriberData;
+using VideoTranscriberStorage;
+using VideoTranscriberVideoClient;
 
 namespace VideoTranscriberFunctions;
 
@@ -11,29 +16,36 @@ public static class SubmitVideos
 {
     [FunctionName("SubmitVideos")]
     public static async Task Run(
-        [TimerTrigger("1 * * * * *")] ILogger log)
+        [TimerTrigger("1 * * * * *")]TimerInfo timer, Microsoft.Azure.WebJobs.ExecutionContext context)
     {
-        log.LogInformation("C# HTTP trigger function processed a request.");
+        var config = new ConfigurationBuilder()
+            .SetBasePath(context.FunctionAppDirectory)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables()
+            .Build();
 
-        // Get the blobContainer
-        var blobServiceClient = new BlobServiceClient(_connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
+        IStorageClient storageClient =
+            new AzureStorageClient(config.GetConnectionString("VideoTranscriberStorageAccount"),
+                config["ContainerName"]);
 
-        List<Uri> fileUris = new List<Uri>();
+        List<string> fileNames = await storageClient.GetFileNames("toBeProcessed");
 
-        // Get the list of blobs
-        var files = containerClient.GetBlobsAsync(prefix:"toBeProcessed");
-
-        // For each blob
-        //   Get the blob
-        await foreach (var file in files)
+        if (fileNames.Any())
         {
-            var blobClient = containerClient.GetBlobClient(file.Name);
-            fileUris.Add(blobClient.Uri);
+            var repository =
+                new TranscriptionDataCosmosRepository(config.GetConnectionString("VideoTranscriberCosmosDb"));
+            var videoClient = new VideoIndexerClient(config["ApiKey"], config["AccountId"], config["location"]);
+
+            foreach (string fileName in fileNames)
+            {
+                string fileNameWithoutFolder = fileName.Substring(fileName.IndexOf("/")+1);
+                TranscriptionData data = await repository.Get(fileNameWithoutFolder);
+                storageClient.MoveToFolder(fileName, "processing");
+                Uri fileUri = await storageClient.GetFileUri(Path.Join("processing", fileName));
+                Guid videoGuid = data.id;
+
+                videoClient.SubmitVideoForIndexing(fileUri, fileName, videoGuid,  new Uri(config["CallbackUri"]));
+            }
         }
-
-        // Move the blob to the Processing container
-        //   Submit the blob to the Video Indexer
-
     }
 }
