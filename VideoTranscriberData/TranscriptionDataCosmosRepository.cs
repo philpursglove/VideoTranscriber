@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using VideoTranscriberCore;
 
 namespace VideoTranscriberData;
@@ -47,5 +48,28 @@ public class TranscriptionDataCosmosRepository : ITranscriptionDataRepository
     public async Task Update(TranscriptionData transcriptionData)
     {
         await _container.UpsertItemAsync(transcriptionData, new PartitionKey(transcriptionData.id.ToString()));
+    }
+
+    public async Task<TranscriptionData> Get(string filename)
+    {
+        List<TranscriptionData> results = new List<TranscriptionData>();
+
+        IOrderedQueryable<TranscriptionData> queryable = _container.GetItemLinqQueryable<TranscriptionData>();
+
+        var matches = queryable.Where(t => t.OriginalFilename == filename);
+
+        using FeedIterator<TranscriptionData> feed = matches.ToFeedIterator();
+
+        while (feed.HasMoreResults)
+        {
+            FeedResponse<TranscriptionData> response = await feed.ReadNextAsync();
+
+            foreach (TranscriptionData transcriptionData in response)
+            {
+                results.Add(transcriptionData);
+            }
+        }
+
+        return results.FirstOrDefault();
     }
 }
