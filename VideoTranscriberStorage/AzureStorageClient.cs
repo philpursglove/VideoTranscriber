@@ -5,20 +5,17 @@ namespace VideoTranscriberStorage;
 
 public class AzureStorageClient : IStorageClient
 {
-    private readonly string _connectionString;
-    private readonly string _containerName;
+    private readonly BlobContainerClient _containerClient;
 
     public AzureStorageClient(string connectionString, string containerName)
     {
-        _connectionString = connectionString;
-        _containerName = containerName;
+        var blobServiceClient = new BlobServiceClient(connectionString);
+        _containerClient = blobServiceClient.GetBlobContainerClient(containerName);
     }
 
     public async Task<Uri> UploadFile(string filename, Stream content, string folderName)
     {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
-        var blobClient = containerClient.GetBlobClient(Path.Join(folderName, filename));
+        var blobClient = _containerClient.GetBlobClient(Path.Join(folderName, filename));
         var stream = await blobClient.OpenWriteAsync(true);
         await content.CopyToAsync(stream);
         stream.Close();
@@ -28,10 +25,10 @@ public class AzureStorageClient : IStorageClient
 
     public async Task MoveToFolder(string filename, string targetFolder)
     {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
-        var sourceBlobClient = containerClient.GetBlobClient(filename);
-        var destBlobClient = containerClient.GetBlockBlobClient($"{targetFolder}/{filename}");
+        var sourceBlobClient = _containerClient.GetBlobClient(filename);
+
+        filename = filename.Substring(filename.IndexOf("/") + 1);
+        var destBlobClient = _containerClient.GetBlockBlobClient($"{targetFolder}/{filename}");
         var copy = destBlobClient.StartCopyFromUriAsync(sourceBlobClient.Uri);
         while (true)
         {
@@ -44,5 +41,31 @@ public class AzureStorageClient : IStorageClient
         }
 
         await sourceBlobClient.DeleteAsync();
+    }
+
+    public async Task<List<string>> GetFileNames(string folderName)
+    {
+        List<string> fileNames = new List<string>();
+
+        // Get the list of blobs
+        var files = _containerClient.GetBlobsAsync(prefix: "toBeProcessed");
+
+        // For each blob
+        //   Get the blob
+        await foreach (var file in files)
+        {
+            if (file.Properties.ContentLength > 0)
+            {
+                fileNames.Add(file.Name);
+            }
+        }
+
+        return fileNames;
+    }
+
+    public Task<Uri> GetFileUri(string fileName)
+    {
+        var blobClient = _containerClient.GetBlobClient(fileName);
+        return Task.FromResult(blobClient.Uri);
     }
 }
