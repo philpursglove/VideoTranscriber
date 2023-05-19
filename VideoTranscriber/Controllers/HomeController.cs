@@ -14,15 +14,13 @@ namespace VideoTranscriber.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ITranscriptionDataRepository _transcriptionDataRepository;
         private readonly IStorageClient _storageClient;
-        private readonly VideoIndexerClient _videoIndexerClient;
 
         public HomeController(ILogger<HomeController> logger, ITranscriptionDataRepository transcriptionDataRepository, 
-            IStorageClient storageClient, VideoIndexerClient videoIndexerClient)
+            IStorageClient storageClient)
         {
             _logger = logger;
             _transcriptionDataRepository = transcriptionDataRepository;
             _storageClient = storageClient;
-            _videoIndexerClient = videoIndexerClient;
         }
 
         public IActionResult Index()
