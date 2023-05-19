@@ -11,4 +11,6 @@ public class IndexingResult
     public double Confidence { get; set; }
     public IEnumerable<string> Keywords { get; set; }
     public IEnumerable<Speaker> Speakers { get; set; }
+
+    public Guid VideoId { get; set; }
 }
