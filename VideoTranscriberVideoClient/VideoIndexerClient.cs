@@ -52,7 +52,7 @@ public class VideoIndexerClient
         var insights = video.insights;
         duration = insights.duration;
         language = insights.sourceLanguage;
-        videoId = insights.externalId;
+        videoId = video.externalId;
 
         foreach (var speaker in insights.speakers)
         {
