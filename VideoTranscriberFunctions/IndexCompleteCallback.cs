@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using VideoTranscriberCore;
 using VideoTranscriberData;
+using VideoTranscriberStorage;
 using VideoTranscriberVideoClient;
 
 namespace VideoTranscriberFunctions
@@ -23,6 +25,7 @@ namespace VideoTranscriberFunctions
             {
                 var config = new ConfigurationBuilder()
                     .SetBasePath(context.FunctionAppDirectory)
+                    .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true, reloadOnChange: true)
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                     .AddEnvironmentVariables()
                     .Build();
@@ -60,7 +63,10 @@ namespace VideoTranscriberFunctions
                 await repository.Update(updateData);
 
                 // Move the video to the Processed container
-
+                IStorageClient storageClient =
+                    new AzureStorageClient(config.GetConnectionString("VideoTranscriberStorageAccount"),
+                        config["ContainerName"]);
+                await storageClient.MoveToFolder($"processing/{updateData.OriginalFilename}", "processed");
             }
 
         }
