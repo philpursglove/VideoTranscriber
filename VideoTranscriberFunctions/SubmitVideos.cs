@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ public static class SubmitVideos
     {
         var config = new ConfigurationBuilder()
             .SetBasePath(context.FunctionAppDirectory)
+            .AddUserSecrets(Assembly.GetExecutingAssembly(), optional:true, reloadOnChange:true)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
@@ -41,10 +43,10 @@ public static class SubmitVideos
                 string fileNameWithoutFolder = fileName.Substring(fileName.IndexOf("/")+1);
                 TranscriptionData data = await repository.Get(fileNameWithoutFolder);
                 storageClient.MoveToFolder(fileName, "processing");
-                Uri fileUri = await storageClient.GetFileUri(Path.Join("processing", fileName));
+                Uri fileUri = await storageClient.GetFileUri($"processing/{fileNameWithoutFolder}");
                 Guid videoGuid = data.id;
 
-                videoClient.SubmitVideoForIndexing(fileUri, fileName, videoGuid,  new Uri(config["CallbackUri"]));
+                videoClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  new Uri(config["CallbackUri"]));
             }
         }
     }
