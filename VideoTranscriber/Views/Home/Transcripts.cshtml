@@ -8,57 +8,70 @@
 
 <table class="table">
     <thead>
-    <tr>
-        <th>
-            Project Name
-        </th>
-        <th>
-            Source Language
-        </th>
-        <th>
-            Original Filename
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Duration)
-        </th>
-        <th>
-            Speakers
-        </th>
-        <th>
-            @Html.DisplayNameFor(m => m.Confidence)
-        </th>
-        <th></th>
-    </tr>
+        <tr>
+            <th>
+                Project Name
+            </th>
+            <th>
+                Source Language
+            </th>
+            <th>
+                Original Filename
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Duration)
+            </th>
+            <th>
+                Speakers
+            </th>
+            <th>
+                @Html.DisplayNameFor(m => m.Confidence)
+            </th>
+            <th></th>
+        </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.ActionLink(@item.ProjectName, "TranscriptsForProject", new { projectName = item.ProjectName })
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Language)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.OriginalFilename)
-        </td>
-        <td>
-        @{
-            TimeSpan duration = TimeSpan.FromSeconds(item.Duration);
-            @duration.ToString(@"hh\:mm\:ss")
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.ActionLink(@item.ProjectName, "TranscriptsForProject", new { projectName = item.ProjectName })
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Language)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OriginalFilename)
+                </td>
+                <td>
+                    @{
+                        TimeSpan duration = TimeSpan.FromSeconds(item.Duration);
+                        @duration.ToString(@"hh\:mm\:ss")
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(m => item.SpeakerCount)
+                </td>
+                <td>
+                    @{
+                        var tooltipText = $"Range: {item.Transcript.Min(t => t.Confidence)} - {item.Transcript.Max(t => t.Confidence)}";
+                    }
+                    <span data-bs-toggle="tooltip" data-bs-title="@tooltipText" data-bs-placement="bottom">
+                        @Html.DisplayFor(m => item.Confidence)
+                    </span>
+                </td>
+                <td>
+                    @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.id }) |
+                    @Html.ActionLink("Download", "DownloadTranscript", new { videoId = item.id })
+                </td>
+            </tr>
         }
-        </td>
-        <td>
-            @Html.DisplayFor(m => item.SpeakerCount)
-        </td>
-        <td>
-            @Html.DisplayFor(m => item.Confidence)
-        </td>
-        <td>
-            @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.id }) |
-            @Html.ActionLink("Download", "DownloadTranscript", new { videoId = item.id })
-        </td>
-    </tr>
-}
     </tbody>
 </table>
+@section Scripts {
+    <script language="javascript">
+        var tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        var tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    </script>
+}
+
