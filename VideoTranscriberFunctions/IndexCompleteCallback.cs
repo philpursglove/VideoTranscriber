@@ -21,7 +21,7 @@ namespace VideoTranscriberFunctions
             string videoIndexerId = req.Query["id"];
             string state = req.Query["state"];
 
-            if (state == "Processed")
+            if (state.ToLowerInvariant() == "processed")
             {
                 var config = new ConfigurationBuilder()
                     .SetBasePath(context.FunctionAppDirectory)
