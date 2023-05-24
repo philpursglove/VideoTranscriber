@@ -1,9 +1,11 @@
 ﻿using System.Text;
+using Aspose.Words;
 using Microsoft.AspNetCore.Mvc;
 using VideoTranscriber.ViewModels;
 using VideoTranscriberCore;
 using VideoTranscriberData;
 using VideoTranscriberStorage;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace VideoTranscriber.Controllers
 {
@@ -113,6 +115,58 @@ namespace VideoTranscriber.Controllers
             {
                 FileDownloadName = transcriptData.OriginalFilename + ".csv",
             };
+
+            return result;
+        }
+
+        public async Task<IActionResult> DownloadWord(Guid videoId, bool includeTimestamps = false)
+        {
+            TranscriptionData transcriptData =
+                await _transcriptionDataRepository.Get(videoId);
+            IEnumerable<TranscriptElement> elements =
+                transcriptData.Transcript;
+            IEnumerable<Speaker> speakers =
+                transcriptData.Speakers;
+
+            Document doc = new Document();
+            DocumentBuilder builder = new DocumentBuilder(doc);
+            builder.Writeln($"File name: {transcriptData.OriginalFilename}");
+
+            builder.Bold = true;
+            builder.Write("Moderator questions in Bold, ");
+            builder.Bold = false;
+            builder.Write("Respondents in Regular text.");
+            builder.Writeln();
+            builder.InsertHorizontalRule();
+
+            foreach (var element in elements)
+            {
+                var speakerName = speakers.First(s => s.Id == element.SpeakerId).Name;
+                if (speakerName.ToLowerInvariant().Contains("moderator"))
+                {
+                    builder.Bold = true;
+                }
+                else
+                {
+                    builder.Bold = false;
+                }
+
+                if (includeTimestamps)
+                {
+                    builder.Writeln($"{element.StartTimeIndex}{ControlChar.Tab} {speakerName}: {element.Text}");
+                }
+                else
+                {
+                    builder.Writeln($"{speakerName}: {element.Text}");
+                }
+            }
+
+            Stream docStream = new MemoryStream();
+            doc.Save(docStream, SaveFormat.Docx);
+            docStream.Position = 0;
+            FileStreamResult result = new FileStreamResult(docStream,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            result.FileDownloadName = transcriptData.OriginalFilename + ".docx";
 
             return result;
         }

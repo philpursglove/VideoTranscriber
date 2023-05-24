@@ -7,7 +7,16 @@
     <h2 class="display-4">Transcript for @Model.Filename</h2>
 </div>
 <div>
-    @Html.ActionLink("Download", "DownloadTranscript", new { videoId = Model.VideoId })
+    <div class="dropdown">
+        <a class="dropdown-toggle" data-bs-toggle="dropdown">Download</a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="@Url.Action("DownloadWord", "Home", new { videoId = Model.VideoId, includeTimestamps=false })">Word</a></li>
+            <li><a class="dropdown-item" href="@Url.Action("DownloadWord", "Home", new { videoId = Model.VideoId, includeTimestamps=true })">Word (with timestamps)</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="@Url.Action("DownloadTranscript", "Home", new { videoId = Model.VideoId })">CSV</a></li>
+        </ul>
+    </div>
+
 </div>
 <div>
     @Html.ActionLink("Edit Speakers", "EditSpeakers", new { videoId = Model.VideoId })
