@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Http.Features;
 using VideoTranscriber;
 using VideoTranscriber.Controllers;
@@ -18,6 +19,16 @@ builder.Services.AddScoped(typeof(IStorageClient),
 builder.Services.AddScoped(typeof(VideoIndexerClient),
     (sp) => new VideoIndexerClient(builder.Configuration["ApiKey"], builder.Configuration["AccountId"],
         builder.Configuration["Location"]));
+
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+    .AddNegotiate();
+
+builder.Services.AddAuthorization(options =>
+{
+    // By default, all incoming requests will be authorized according to the default policy.
+    options.FallbackPolicy = options.DefaultPolicy;
+});
+
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
@@ -45,6 +56,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
