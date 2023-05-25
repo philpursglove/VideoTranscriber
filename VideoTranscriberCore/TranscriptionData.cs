@@ -34,4 +34,5 @@ public class TranscriptionData
     public TimeSpan IndexDuration { get; set; }
 
     public string Owner { get; set; }
+    public string SecurityGroup { get; set; }
 }

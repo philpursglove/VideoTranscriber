@@ -33,16 +33,12 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
-                // TODO Get by filename
-                var existingTranscripts = await _transcriptionDataRepository.GetAll();
-
                 foreach (IFormFile file in Request.Form.Files)
                 {
                     var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
-                    if (!existingTranscripts.Any(t => t.OriginalFilename == file.FileName))
+                    if (_transcriptionDataRepository.Get(file.FileName) == null)
                     {
-
                         Guid videoGuid = Guid.NewGuid();
                         TranscriptionData data = new TranscriptionData
                         {
@@ -57,7 +53,6 @@ namespace VideoTranscriber.Controllers
 
                         var videoUrl =
                             await _storageClient.UploadFile(file.FileName, file.OpenReadStream(), "toBeProcessed");
-
                     }
                 }
                 return RedirectToAction("Transcripts", "Home");
@@ -71,17 +66,25 @@ namespace VideoTranscriber.Controllers
             TranscriptionData transcriptData =
                 await _transcriptionDataRepository.Get(videoId);
 
-            ViewTranscriptViewModel model = new ViewTranscriptViewModel()
-            {
-                Filename = transcriptData.OriginalFilename,
-                Language = transcriptData.Language,
-                Transcript = transcriptData.Transcript,
-                Keywords = transcriptData.Keywords,
-                Speakers = transcriptData.Speakers,
-                VideoId = videoId
-            };
+            var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
-            return View(model);
+            if (transcriptData.Owner.ToLowerInvariant() == username || transcriptData.SecurityGroup.ToLowerInvariant().Contains(username))
+            {
+                ViewTranscriptViewModel model = new ViewTranscriptViewModel()
+                {
+                    Filename = transcriptData.OriginalFilename,
+                    Language = transcriptData.Language,
+                    Transcript = transcriptData.Transcript,
+                    Keywords = transcriptData.Keywords,
+                    Speakers = transcriptData.Speakers,
+                    VideoId = videoId,
+                    UserIsFileOwner = transcriptData.Owner.ToLowerInvariant() == username
+                };
+
+                return View(model);
+            }
+
+            return new ForbidResult();
         }
 
         public async Task<IActionResult> Transcripts()
@@ -90,7 +93,7 @@ namespace VideoTranscriber.Controllers
 
             var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
-            return View(transcripts.Where(t => t.Transcript != null && t.Transcript.Any() && t.Owner.ToLowerInvariant() == username).ToList());
+            return View(transcripts.Where(t => t.Transcript != null && t.Transcript.Any() && (t.Owner.ToLowerInvariant() == username || t.SecurityGroup.ToLowerInvariant().Contains(username))).ToList());
         }
 
         public async Task<IActionResult> TranscriptsForProject(string projectName)
@@ -108,7 +111,6 @@ namespace VideoTranscriber.Controllers
 
             return View("Transcripts", transcripts.Where(t => t.Owner.ToLowerInvariant() == username));
         }
-
 
         public async Task<IActionResult> DownloadTranscript(Guid videoId)
         {
@@ -158,23 +160,11 @@ namespace VideoTranscriber.Controllers
             foreach (var element in elements)
             {
                 var speakerName = speakers.First(s => s.Id == element.SpeakerId).Name;
-                if (speakerName.ToLowerInvariant().Contains("moderator"))
-                {
-                    builder.Bold = true;
-                }
-                else
-                {
-                    builder.Bold = false;
-                }
+                builder.Bold = speakerName.ToLowerInvariant().Contains("moderator");
 
-                if (includeTimestamps)
-                {
-                    builder.Writeln($"{element.StartTimeIndex}{ControlChar.Tab} {speakerName}: {element.Text}");
-                }
-                else
-                {
-                    builder.Writeln($"{speakerName}: {element.Text}");
-                }
+                builder.Writeln(includeTimestamps
+                    ? $"{element.StartTimeIndex}{ControlChar.Tab} {speakerName}: {element.Text}"
+                    : $"{speakerName}: {element.Text}");
             }
 
             Stream docStream = new MemoryStream();
@@ -218,5 +208,44 @@ namespace VideoTranscriber.Controllers
 
             return View(model);
         }
+
+        public async Task<IActionResult> EditSecurity(Guid videoId)
+        {
+            TranscriptionData transcriptData =
+                await _transcriptionDataRepository.Get(videoId);
+
+            var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
+
+            if (transcriptData.Owner.ToLowerInvariant() == username)
+            {
+                EditSecurityViewModel model = new EditSecurityViewModel()
+                {
+                    VideoId = videoId,
+                    Filename = transcriptData.OriginalFilename,
+                    Owner = transcriptData.Owner,
+                    SecurityGroup = transcriptData.SecurityGroup
+                };
+
+                return View(model);
+            }
+
+            return new ForbidResult();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSecurity(EditSecurityViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                TranscriptionData transcriptData =
+                    await _transcriptionDataRepository.Get(model.VideoId);
+                transcriptData.SecurityGroup = model.SecurityGroup;
+                await _transcriptionDataRepository.Update(transcriptData);
+                return RedirectToAction("ViewTranscript", new { videoId = model.VideoId });
+            }
+
+            return View(model);
+        }
+        
     }
 }

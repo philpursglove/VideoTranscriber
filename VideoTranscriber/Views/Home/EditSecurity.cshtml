@@ -1,0 +1,20 @@
+﻿@model VideoTranscriber.ViewModels.EditSecurityViewModel
+@{
+    ViewData["Title"] = "Edit Security";
+}
+
+<div class="text-center">
+    <h3 class="display-4">Transcript for @Model.Filename</h3>
+</div>
+
+<div>
+    Owner: @Model.Owner
+</div>
+
+<form method="post">
+    <input type="hidden" asp-for="VideoId" value="@Model.VideoId"/>
+    <label for="SecurityGroup">Users permitted to access this file</label><br/>
+    <textarea asp-for="SecurityGroup" rows="5" cols="40"></textarea>
+    <br/>
+    <input type="submit" value="Save"/>
+</form>

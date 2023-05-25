@@ -23,6 +23,12 @@
     <li class="nav-item">
         @Html.ActionLink("Edit Speakers", "EditSpeakers", new { videoId = Model.VideoId }, new {@class="nav-link"})
     </li>
+    @if (Model.UserIsFileOwner)
+    {
+        <li class="nav-item">
+            @Html.ActionLink("Edit Security", "EditSecurity", new { videoId = Model.VideoId }, new { @class = "nav-link" })
+        </li>
+    }
 </div>
 <div>
     <h3>Language: @Model.Language </h3>
