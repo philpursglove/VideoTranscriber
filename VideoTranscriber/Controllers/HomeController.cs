@@ -5,7 +5,6 @@ using VideoTranscriber.ViewModels;
 using VideoTranscriberCore;
 using VideoTranscriberData;
 using VideoTranscriberStorage;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace VideoTranscriber.Controllers
 {
