@@ -188,7 +188,8 @@ namespace VideoTranscriber.Controllers
             EditSpeakersViewModel model = new EditSpeakersViewModel()
             {
                 VideoId = videoId,
-                Speakers = speakers
+                Speakers = speakers,
+                Filename = transcriptData.OriginalFilename,
             };
 
             return View(model);

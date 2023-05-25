@@ -3,9 +3,14 @@
     ViewData["Title"] = "Edit Speakers";
 }
 
+<div class="text-center">
+    <h3 class="display-4">Transcript for @Model.Filename</h3>
+</div>
+
 <form method="post">
     <input type="hidden" asp-for="VideoId" value="@Model.VideoId"/>
     
+    <label>Speaker Names (speaker names containing the word 'moderator' will appear in <strong>bold</strong> when the transcript is downloaded.)</label><br/>
     @for (int i = 0; i < Model.Speakers.ToArray().Count(); i++)
     {
         <div>

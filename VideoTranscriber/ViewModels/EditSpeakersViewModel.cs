@@ -7,5 +7,7 @@ namespace VideoTranscriber.ViewModels
     {
         public Guid VideoId { get; set; }
         public IEnumerable<Speaker> Speakers { get; set; }
+
+        public string Filename { get; set; }
     }
 }
