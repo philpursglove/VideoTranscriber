@@ -46,6 +46,9 @@ public static class SubmitVideos
                 Guid videoGuid = data.id;
 
                 videoClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  new Uri(config["CallbackUri"]));
+
+                data.TranscriptionStatus = TranscriptionStatus.Transcribing;
+                repository.Update(data);
             }
         }
     }

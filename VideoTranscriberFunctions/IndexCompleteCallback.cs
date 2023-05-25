@@ -60,6 +60,7 @@ namespace VideoTranscriberFunctions
                 updateData.Confidence = indexResult.Confidence;
                 updateData.Keywords = indexResult.Keywords;
                 updateData.Speakers = indexResult.Speakers;
+                updateData.TranscriptionStatus = TranscriptionStatus.Transcribed;
                 await repository.Update(updateData);
 
                 // Move the video to the Processed container

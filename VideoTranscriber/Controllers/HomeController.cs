@@ -33,11 +33,13 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
+                var existingTranscripts = await _transcriptionDataRepository.GetAll();
+
                 foreach (IFormFile file in Request.Form.Files)
                 {
                     var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
-                    if (_transcriptionDataRepository.Get(file.FileName) == null)
+                    if (!existingTranscripts.Any(t => t.OriginalFilename == file.FileName))
                     {
                         Guid videoGuid = Guid.NewGuid();
                         TranscriptionData data = new TranscriptionData
@@ -46,7 +48,8 @@ namespace VideoTranscriber.Controllers
                             id = videoGuid,
                             ProjectName = model.ProjectName,
                             UploadDate = DateTime.UtcNow,
-                            Owner = username
+                            Owner = username,
+                            TranscriptionStatus = TranscriptionStatus.Uploaded
                         };
 
                         await _transcriptionDataRepository.Add(data);
@@ -93,7 +96,7 @@ namespace VideoTranscriber.Controllers
 
             var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
-            return View(transcripts.Where(t => t.Transcript != null && t.Transcript.Any() && (t.Owner.ToLowerInvariant() == username || t.SecurityGroup.ToLowerInvariant().Contains(username))).ToList());
+            return View(transcripts.Where(t => t.Owner.ToLowerInvariant() == username || t.SecurityGroup.ToLowerInvariant().Contains(username)).ToList());
         }
 
         public async Task<IActionResult> TranscriptsForProject(string projectName)

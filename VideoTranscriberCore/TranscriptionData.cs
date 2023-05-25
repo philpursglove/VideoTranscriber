@@ -35,4 +35,6 @@ public class TranscriptionData
 
     public string Owner { get; set; }
     public string SecurityGroup { get; set; }
+
+    public TranscriptionStatus TranscriptionStatus { get; set; }
 }
