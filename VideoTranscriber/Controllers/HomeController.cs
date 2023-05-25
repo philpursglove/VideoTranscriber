@@ -38,7 +38,7 @@ namespace VideoTranscriber.Controllers
 
                 foreach (IFormFile file in Request.Form.Files)
                 {
-                    var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty);
+                    var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
                     if (!existingTranscripts.Any(t => t.OriginalFilename == file.FileName))
                     {
@@ -88,9 +88,9 @@ namespace VideoTranscriber.Controllers
         {
             var transcripts = await _transcriptionDataRepository.GetAll();
 
-            var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty);
+            var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
 
-            return View(transcripts.Where(t => t.Transcript != null && t.Transcript.Any() && t.Owner == username).ToList());
+            return View(transcripts.Where(t => t.Transcript != null && t.Transcript.Any() && t.Owner.ToLowerInvariant() == username).ToList());
         }
 
         public async Task<IActionResult> TranscriptsForProject(string projectName)
@@ -99,6 +99,16 @@ namespace VideoTranscriber.Controllers
 
             return View("Transcripts", transcripts.Where(t => t.ProjectName == projectName));
         }
+
+        public async Task<IActionResult> MyTranscripts()
+        {
+            var transcripts = await _transcriptionDataRepository.GetAll();
+
+            var username = HttpContext.User.Identity.Name.Replace("AzureAD\\", string.Empty).ToLowerInvariant();
+
+            return View("Transcripts", transcripts.Where(t => t.Owner.ToLowerInvariant() == username));
+        }
+
 
         public async Task<IActionResult> DownloadTranscript(Guid videoId)
         {
