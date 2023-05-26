@@ -2,8 +2,8 @@
 
 public class EditSecurityViewModel
 {
-    public Guid VideoId { get; internal set; }
-    public string Filename { get; internal set; }
-    public string Owner { get; internal set; }
-    public string SecurityGroup { get; internal set; }
+    public Guid VideoId { get;  set; }
+    public string? Filename { get;  set; }
+    public string? Owner { get;  set; }
+    public string SecurityGroup { get;  set; }
 }

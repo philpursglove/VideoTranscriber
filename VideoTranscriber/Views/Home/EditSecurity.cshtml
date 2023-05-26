@@ -14,7 +14,7 @@
 <form method="post">
     <input type="hidden" asp-for="VideoId" value="@Model.VideoId"/>
     <label for="SecurityGroup">Users permitted to access this file</label><br/>
-    <textarea asp-for="SecurityGroup" id="SecurityGroup" rows="5" cols="40"></textarea>
+    <textarea asp-for="SecurityGroup" id="SecurityGroup" rows="5" cols="40">@Model.SecurityGroup</textarea>
     <br/>
     <input type="submit" value="Save"/>
 </form>

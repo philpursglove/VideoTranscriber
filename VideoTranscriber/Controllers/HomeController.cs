@@ -20,7 +20,6 @@ namespace VideoTranscriber.Controllers
             _logger = logger;
             _transcriptionDataRepository = transcriptionDataRepository;
             _storageClient = storageClient;
-
         }
 
         public IActionResult Index()
@@ -242,8 +241,7 @@ namespace VideoTranscriber.Controllers
         {
             if (ModelState.IsValid)
             {
-                TranscriptionData transcriptData =
-                    await _transcriptionDataRepository.Get(model.VideoId);
+                TranscriptionData transcriptData = await _transcriptionDataRepository.Get(model.VideoId);
                 transcriptData.SecurityGroup = model.SecurityGroup;
                 await _transcriptionDataRepository.Update(transcriptData);
                 return RedirectToAction("ViewTranscript", new { videoId = model.VideoId });
