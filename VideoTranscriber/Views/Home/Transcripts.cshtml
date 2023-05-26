@@ -63,9 +63,17 @@
                             @Html.DisplayFor(m => item.Confidence)
                         </span>
                     </td>
-                    <td>
-                        @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.id }) |
-                        @Html.ActionLink("Download", "DownloadTranscript", new { videoId = item.id })
+                    <td class="nav">
+                        @Html.ActionLink("View Transcript", "ViewTranscript", new { videoId = item.id }, new {@class="nav-link"})
+                        <div class="dropdown">
+                            <a class="dropdown-toggle nav-link" data-bs-toggle="dropdown">Download</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("DownloadWord", "Home", new { videoId = item.VideoId, includeTimestamps=false })">Word</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("DownloadWord", "Home", new { videoId = item.VideoId, includeTimestamps=true })">Word (with timestamps)</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="@Url.Action("DownloadTranscript", "Home", new { videoId = item.VideoId })">CSV</a></li>
+                            </ul>
+                        </div>
                     </td>
                 </tr>
             }
