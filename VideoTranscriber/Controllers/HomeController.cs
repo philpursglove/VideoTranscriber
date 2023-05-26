@@ -157,6 +157,7 @@ namespace VideoTranscriber.Controllers
             builder.Bold = false;
             builder.Write("Respondents in Regular text.");
             builder.Writeln();
+            builder.InsertBreak(BreakType.LineBreak);
             builder.InsertHorizontalRule();
 
             foreach (var element in elements)
@@ -167,6 +168,7 @@ namespace VideoTranscriber.Controllers
                 builder.Writeln(includeTimestamps
                     ? $"{element.StartTimeIndex}{ControlChar.Tab} {speakerName}: {element.Text}"
                     : $"{speakerName}: {element.Text}");
+                builder.InsertBreak(BreakType.LineBreak);
             }
 
             Stream docStream = new MemoryStream();
