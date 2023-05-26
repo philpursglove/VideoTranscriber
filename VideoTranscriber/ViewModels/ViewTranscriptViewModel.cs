@@ -11,5 +11,4 @@ public class ViewTranscriptViewModel
     public IEnumerable<string> Keywords { get; set; }
     public IEnumerable<Speaker> Speakers { get; set; }
     public Guid VideoId { get; set; }
-    public bool UserIsFileOwner { get; set; }
 }

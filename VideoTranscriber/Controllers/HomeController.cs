@@ -80,8 +80,7 @@ namespace VideoTranscriber.Controllers
                     Transcript = transcriptData.Transcript,
                     Keywords = transcriptData.Keywords,
                     Speakers = transcriptData.Speakers,
-                    VideoId = videoId,
-                    UserIsFileOwner = transcriptData.Owner.ToLowerInvariant() == username
+                    VideoId = videoId
                 };
 
                 return View(model);
