@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33626.354
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VideoTranscriber", "VideoTranscriber.csproj", "{107AD467-0CE3-4736-9F8F-73BC202C0993}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VideoTranscriber", ".\VideoTranscriber\VideoTranscriber.csproj", "{107AD467-0CE3-4736-9F8F-73BC202C0993}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberFunctions", "..\VideoTranscriberFunctions\VideoTranscriberFunctions.csproj", "{09DD5B09-80DC-4ED3-B539-DAE3689096EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberFunctions", ".\VideoTranscriberFunctions\VideoTranscriberFunctions.csproj", "{09DD5B09-80DC-4ED3-B539-DAE3689096EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberVideoClient", "..\VideoTranscriberVideoClient\VideoTranscriberVideoClient.csproj", "{2C24AF96-AABF-4C63-8904-EE2528077033}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberVideoClient", ".\VideoTranscriberVideoClient\VideoTranscriberVideoClient.csproj", "{2C24AF96-AABF-4C63-8904-EE2528077033}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberCore", "..\VideoTranscriberCore\VideoTranscriberCore.csproj", "{BB2E0E16-57AA-42B0-9AAB-94C6E61A0F92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberCore", ".\VideoTranscriberCore\VideoTranscriberCore.csproj", "{BB2E0E16-57AA-42B0-9AAB-94C6E61A0F92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberStorage", "..\VideoTranscriberStorage\VideoTranscriberStorage.csproj", "{4FA95BBA-4D80-4232-BAF3-9A6EE1F7B783}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberStorage", ".\VideoTranscriberStorage\VideoTranscriberStorage.csproj", "{4FA95BBA-4D80-4232-BAF3-9A6EE1F7B783}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberData", "..\VideoTranscriberData\VideoTranscriberData.csproj", "{19EBCD09-8F1E-43E4-82B3-0112B07D85D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoTranscriberData", ".\VideoTranscriberData\VideoTranscriberData.csproj", "{19EBCD09-8F1E-43E4-82B3-0112B07D85D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
