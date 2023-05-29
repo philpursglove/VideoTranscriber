@@ -111,16 +111,6 @@ public class VideoIndexerClient
 
         // upload a video
         var content = new MultipartFormDataContent();
-        //Debug.WriteLine("Uploading...");
-        // get the video from URL
-        //var videoUrl = "VIDEO_URL"; // replace with the video URL
-
-        // as an alternative to specifying video URL, you can upload a file.
-        // remove the videoUrl parameter from the query string below and add the following lines:
-        //FileStream video =File.OpenRead(Globals.VIDEOFILE_PATH);
-        //byte[] buffer = new byte[video.Length];
-        //video.Read(buffer, 0, buffer.Length);
-        //content.Add(new ByteArrayContent(buffer));
 
         string correctedName = videoName.Replace(" ", string.Empty);
         if (correctedName.Length > 80)
@@ -128,9 +118,7 @@ public class VideoIndexerClient
             correctedName = correctedName.Substring(0, 80);
         }
 
-        var uploadRequestResult = client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUri}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoId.ToString()}&callbackUrl={callbackUri}", content).Result;
-        var uploadResult = uploadRequestResult.Content.ReadAsStringAsync().Result;
-
+        _ = client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUri}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoId.ToString()}&callbackUrl={callbackUri}", content).Result;
     }
 
     public async Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
@@ -151,16 +139,6 @@ public class VideoIndexerClient
 
         // upload a video
         var content = new MultipartFormDataContent();
-        //Debug.WriteLine("Uploading...");
-        // get the video from URL
-        //var videoUrl = "VIDEO_URL"; // replace with the video URL
-
-        // as an alternative to specifying video URL, you can upload a file.
-        // remove the videoUrl parameter from the query string below and add the following lines:
-        //FileStream video =File.OpenRead(Globals.VIDEOFILE_PATH);
-        //byte[] buffer = new byte[video.Length];
-        //video.Read(buffer, 0, buffer.Length);
-        //content.Add(new ByteArrayContent(buffer));
 
         string correctedName = videoName.Replace(" ", string.Empty);
         if (correctedName.Length > 80)
@@ -197,16 +175,9 @@ public class VideoIndexerClient
 
             var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
 
-            //Debug.WriteLine("");
-            //Debug.WriteLine("State:");
-            //Debug.WriteLine(processingState);
-
             // job is finished
             if (processingState != "Uploaded" && processingState != "Processing")
             {
-                //Debug.WriteLine("");
-                // Debug.WriteLine("Full JSON:");
-                //Debug.WriteLine(videoGetIndexResult);
                 var result = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult);
 
                 var video = result.videos[0];
