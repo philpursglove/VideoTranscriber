@@ -32,7 +32,7 @@ public class VideoIndexerClient
         var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         var videoGetIndexRequestResult = client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?accessToken={videoAccessToken}&language=English").Result;
-        var videoGetIndexResult = videoGetIndexRequestResult.Content.ReadAsStringAsync().Result;
+        var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
         var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
 
@@ -147,7 +147,7 @@ public class VideoIndexerClient
         }
 
         var uploadRequestResult = client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid.ToString()}", content).Result;
-        var uploadResult = uploadRequestResult.Content.ReadAsStringAsync().Result;
+        var uploadResult = await uploadRequestResult.Content.ReadAsStringAsync();
 
         // get the video id from the upload result
         var videoId = JsonConvert.DeserializeObject<dynamic>(uploadResult)["id"];
@@ -171,7 +171,7 @@ public class VideoIndexerClient
             Thread.Sleep(10000);
 
             var videoGetIndexRequestResult = client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English").Result;
-            var videoGetIndexResult = videoGetIndexRequestResult.Content.ReadAsStringAsync().Result;
+            var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
             var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
 
