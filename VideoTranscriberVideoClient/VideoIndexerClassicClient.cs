@@ -3,7 +3,7 @@ using VideoTranscriberCore;
 
 namespace VideoTranscriberVideoClient;
 
-public class VideoIndexerClassicClient
+public class VideoIndexerClassicClient : VideoIndexerClientBase, IVideoIndexerClient
 {
     private readonly string _apiKey;
     private readonly string _accountId;
@@ -112,14 +112,11 @@ public class VideoIndexerClassicClient
         // upload a video
         var content = new MultipartFormDataContent();
 
-        string correctedName = videoName.Replace(" ", string.Empty);
-        if (correctedName.Length > 80)
-        {
-            correctedName = correctedName.Substring(0, 80);
-        }
+        var correctedName = CorrectName(videoName);
 
         _ = client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUri}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoId.ToString()}&callbackUrl={callbackUri}", content).Result;
     }
+
 
     public async Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
     {
@@ -140,11 +137,7 @@ public class VideoIndexerClassicClient
         // upload a video
         var content = new MultipartFormDataContent();
 
-        string correctedName = videoName.Replace(" ", string.Empty);
-        if (correctedName.Length > 80)
-        {
-            correctedName = correctedName.Substring(0, 80);
-        }
+        var correctedName = CorrectName(videoName);
 
         var uploadRequestResult = await client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid}", content);
         var uploadResult = await uploadRequestResult.Content.ReadAsStringAsync();
