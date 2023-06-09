@@ -16,8 +16,8 @@ builder.Services.AddSingleton(typeof(ITranscriptionDataRepository),
 builder.Services.AddScoped(typeof(IStorageClient),
     (sp) => new AzureStorageClient(builder.Configuration.GetConnectionString("VideoTranscriberStorageAccount"),
         builder.Configuration["ContainerName"]));
-builder.Services.AddScoped(typeof(VideoIndexerClient),
-    (sp) => new VideoIndexerClient(builder.Configuration["ApiKey"], builder.Configuration["AccountId"],
+builder.Services.AddScoped(typeof(VideoIndexerClassicClient),
+    (sp) => new VideoIndexerClassicClient(builder.Configuration["ApiKey"], builder.Configuration["AccountId"],
         builder.Configuration["Location"]));
 
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
