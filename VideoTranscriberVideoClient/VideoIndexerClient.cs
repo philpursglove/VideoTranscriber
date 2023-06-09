@@ -28,10 +28,10 @@ public class VideoIndexerClient
         client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
 
         // obtain video access token
-        var videoTokenRequestResult = client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/AccessToken?allowEdit=true").Result;
+        var videoTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/AccessToken?allowEdit=true");
         var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
-        var videoGetIndexRequestResult = client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?accessToken={videoAccessToken}&language=English").Result;
+        var videoGetIndexRequestResult = await client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?accessToken={videoAccessToken}&language=English");
         var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
         var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
@@ -104,7 +104,7 @@ public class VideoIndexerClient
         client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
 
         // obtain account access token
-        var accountAccessTokenRequestResult = client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true").Result;
+        var accountAccessTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
         var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
@@ -132,7 +132,7 @@ public class VideoIndexerClient
         client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
 
         // obtain account access token
-        var accountAccessTokenRequestResult = client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true").Result;
+        var accountAccessTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
         var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
@@ -146,7 +146,7 @@ public class VideoIndexerClient
             correctedName = correctedName.Substring(0, 80);
         }
 
-        var uploadRequestResult = client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid.ToString()}", content).Result;
+        var uploadRequestResult = await client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid}", content);
         var uploadResult = await uploadRequestResult.Content.ReadAsStringAsync();
 
         // get the video id from the upload result
@@ -154,7 +154,7 @@ public class VideoIndexerClient
 
         // obtain video access token
         client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
-        var videoTokenRequestResult = client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true").Result;
+        var videoTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true");
         var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
@@ -170,7 +170,7 @@ public class VideoIndexerClient
         {
             Thread.Sleep(10000);
 
-            var videoGetIndexRequestResult = client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English").Result;
+            var videoGetIndexRequestResult = await client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English");
             var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
             var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
