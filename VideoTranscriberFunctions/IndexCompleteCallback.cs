@@ -32,7 +32,7 @@ namespace VideoTranscriberFunctions
 
                 // Get the Index record by the id
                 var videoIndexerClient =
-                    new VideoIndexerClassicClient(config["ApiKey"], config["AccountId"], config["Location"]);
+                    new VideoIndexerClientClassic(config["ApiKey"], config["AccountId"], config["Location"]);
 
                 var indexResult = await videoIndexerClient.GetVideoIndex(videoIndexerId);
 

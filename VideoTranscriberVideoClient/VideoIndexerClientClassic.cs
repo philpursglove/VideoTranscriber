@@ -3,14 +3,14 @@ using VideoTranscriberCore;
 
 namespace VideoTranscriberVideoClient;
 
-public class VideoIndexerClassicClient : VideoIndexerClientBase, IVideoIndexerClient
+public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerClient
 {
     private readonly string _apiKey;
     private readonly string _accountId;
     private readonly string _location;
     private readonly Uri _apiUri = new Uri("https://api.videoindexer.ai");
 
-    public VideoIndexerClassicClient(string apiKey, string accountId, string location)
+    public VideoIndexerClientClassic(string apiKey, string accountId, string location)
     {
         _apiKey = apiKey;
         _accountId = accountId;

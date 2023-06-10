@@ -35,7 +35,7 @@ public static class SubmitVideos
         {
             var repository =
                 new TranscriptionDataCosmosRepository(config.GetConnectionString("VideoTranscriberCosmosDb"));
-            var videoClient = new VideoIndexerClassicClient(config["ApiKey"], config["AccountId"], config["location"]);
+            var videoClient = new VideoIndexerClientClassic(config["ApiKey"], config["AccountId"], config["location"]);
 
             foreach (string fileName in fileNames)
             {
