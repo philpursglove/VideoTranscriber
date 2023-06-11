@@ -21,17 +21,17 @@ namespace VideoTranscriberVideoClient
         private string _accountName;
         private string _location;
         private string _accountId;
+        private VideoIndexerResourceProviderClient _videoIndexerResourceProviderClient;
 
         public VideoIndexerClientArm()
         {
             // Build Azure Video Indexer resource provider client that has access token throuhg ARM
-            var videoIndexerResourceProviderClient = VideoIndexerResourceProviderClient.BuildVideoIndexerResourceProviderClient();
+            _videoIndexerResourceProviderClient = VideoIndexerResourceProviderClient.BuildVideoIndexerResourceProviderClient().Result;
 
             // Get account details
-            var account = videoIndexerResourceProviderClient.GetAccount();
+            var account = _videoIndexerResourceProviderClient.GetAccount().Result;
             _location = account.Location;
             _accountId = account.Properties.Id;
-
         }
 
         public Task<IndexingResult> GetVideoIndex(string videoIndexerId)
@@ -51,9 +51,8 @@ namespace VideoTranscriberVideoClient
 
         internal class VideoIndexerResourceProviderClient
         {
-            private readonly string armAccessToken;
-
-            async public static Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
+            private readonly string _armAccessToken;
+            async static public Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
             {
                 var tokenRequestContext = new TokenRequestContext(new[] { $"{_azureResourceManager}/.default" });
                 var tokenRequestResult = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
@@ -61,7 +60,7 @@ namespace VideoTranscriberVideoClient
             }
             public VideoIndexerResourceProviderClient(string armAccessToken)
             {
-                this.armAccessToken = armAccessToken;
+                _armAccessToken = armAccessToken;
             }
 
             /// <summary>
@@ -93,7 +92,7 @@ namespace VideoTranscriberVideoClient
                     // Set request uri
                     var requestUri = $"{_azureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}/generateAccessToken?api-version={_apiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", armAccessToken);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
                     var result = await client.PostAsync(requestUri, httpContent);
 
@@ -115,20 +114,20 @@ namespace VideoTranscriberVideoClient
             /// <returns> The Account, otherwise throws an exception</returns>
             public async Task<Account> GetAccount()
             {
-                Console.WriteLine($"Getting account {AccountName}.");
+                Console.WriteLine($"Getting account {_accountName}.");
                 Account account;
                 try
                 {
                     // Set request uri
-                    var requestUri = $"{AzureResourceManager}/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroup}/providers/Microsoft.VideoIndexer/accounts/{AccountName}?api-version={ApiVersion}";
+                    var requestUri = $"{_azureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}?api-version={_apiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", armAccessToken);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
                     var result = await client.GetAsync(requestUri);
 
                     VerifyStatus(result, System.Net.HttpStatusCode.OK);
                     var jsonResponseBody = await result.Content.ReadAsStringAsync();
-                    account = JsonSerializer.Deserialize<Account>(jsonResponseBody);
+                    account = JsonConvert.DeserializeObject<Account>(jsonResponseBody);
                     VerifyValidAccount(account);
                     Console.WriteLine($"The account ID is {account.Properties.Id}");
                     Console.WriteLine($"The account location is {account.Location}");
@@ -141,12 +140,12 @@ namespace VideoTranscriberVideoClient
                 }
             }
 
-            private static void VerifyValidAccount(Account account)
+            private void VerifyValidAccount(Account account)
             {
                 if (string.IsNullOrWhiteSpace(account.Location) || account.Properties == null || string.IsNullOrWhiteSpace(account.Properties.Id))
                 {
-                    Console.WriteLine($"{nameof(AccountName)} {AccountName} not found. Check {nameof(SubscriptionId)}, {nameof(ResourceGroup)}, {nameof(AccountName)} ar valid.");
-                    throw new Exception($"Account {AccountName} not found.");
+                    Console.WriteLine($"{nameof(_accountName)} {_accountName} not found. Check {nameof(_subscriptionId)}, {nameof(_resourceGroupName)}, {nameof(_accountName)} ar valid.");
+                    throw new Exception($"Account {_accountName} not found.");
                 }
             }
         }
