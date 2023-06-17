@@ -7,7 +7,9 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
+using Microsoft.Identity.Client;
 using Newtonsoft.Json;
+using static VideoTranscriberVideoClient.VideoIndexerClientArm;
 
 namespace VideoTranscriberVideoClient
 {
@@ -33,10 +35,30 @@ namespace VideoTranscriberVideoClient
             _location = account.Location;
             _accountId = account.Properties.Id;
         }
-
-        public Task<IndexingResult> GetVideoIndex(string videoIndexerId)
+        public async Task<IndexingResult> GetVideoIndex(string videoIndexerId)
         {
-            throw new NotImplementedException();
+            var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false
+            };
+            var client = new HttpClient(handler);
+
+            var accountAccessToken = await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor, ArmAccessTokenScope.Account);
+
+            string queryParams;
+                queryParams = CreateQueryString(
+                    new Dictionary<string, string>()
+                    {
+                        {"accessToken", accountAccessToken},
+                        {"language", "English"},
+                    });
+
+
+                var videoGetIndexRequestResult = await client.GetAsync($"{_apiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
+
+            VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
+            var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
+            string processingState = JsonSerializer.Deserialize<Video>(videoGetIndexResult).State;
         }
 
         public Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
