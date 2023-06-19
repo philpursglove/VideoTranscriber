@@ -1,4 +1,6 @@
-﻿namespace VideoTranscriberVideoClient;
+﻿using System.Web;
+
+namespace VideoTranscriberVideoClient;
 
 public class VideoIndexerClientBase
 {
@@ -13,4 +15,14 @@ public class VideoIndexerClientBase
         return correctedName;
     }
 
+    internal string CreateQueryString(IDictionary<string, string> parameters)
+    {
+        var queryParameters = HttpUtility.ParseQueryString(string.Empty);
+        foreach (var parameter in parameters)
+        {
+            queryParameters[parameter.Key] = parameter.Value;
+        }
+
+        return queryParameters.ToString();
+    }
 }
