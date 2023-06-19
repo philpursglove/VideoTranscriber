@@ -169,7 +169,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
             var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
 
             // job is finished
-            if (processingState != "Uploaded" && processingState != "Processing")
+            if (processingState != IndexingStatus.Uploaded && processingState != IndexingStatus.Processing)
             {
                 var result = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult);
 
