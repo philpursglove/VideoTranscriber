@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
@@ -165,7 +164,7 @@ namespace VideoTranscriberVideoClient
             public string VideoId { get; set; }
         }
 
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public enum ArmAccessTokenPermission
         {
             Reader,
@@ -174,7 +173,7 @@ namespace VideoTranscriberVideoClient
             Owner,
         }
 
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public enum ArmAccessTokenScope
         {
             Account,
