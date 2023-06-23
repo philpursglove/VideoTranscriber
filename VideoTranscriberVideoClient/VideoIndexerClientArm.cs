@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using Azure.Core;
+﻿using Azure.Core;
 using Azure.Identity;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json;
-using static VideoTranscriberVideoClient.VideoIndexerClientArm;
+using Newtonsoft.Json.Converters;
+using System.Net.Http.Headers;
 
 namespace VideoTranscriberVideoClient
 {
@@ -27,7 +20,7 @@ namespace VideoTranscriberVideoClient
 
         public VideoIndexerClientArm()
         {
-            // Build Azure Video Indexer resource provider client that has access token throuhg ARM
+            // Build Azure Video Indexer resource provider client that has access token through ARM
             _videoIndexerResourceProviderClient = VideoIndexerResourceProviderClient.BuildVideoIndexerResourceProviderClient().Result;
 
             // Get account details
@@ -58,7 +51,9 @@ namespace VideoTranscriberVideoClient
 
             VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
             var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
-            string processingState = JsonSerializer.Deserialize<Video>(videoGetIndexResult).State;
+            string processingState = JsonConvert.DeserializeObject<Video>(videoGetIndexResult).State;
+
+            return new IndexingResult();
         }
 
         public Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
@@ -187,7 +182,7 @@ namespace VideoTranscriberVideoClient
             public string VideoId { get; set; }
         }
 
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public enum ArmAccessTokenPermission
         {
             Reader,
@@ -196,7 +191,7 @@ namespace VideoTranscriberVideoClient
             Owner,
         }
 
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public enum ArmAccessTokenScope
         {
             Account,
