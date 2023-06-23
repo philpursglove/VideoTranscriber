@@ -10,6 +10,8 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
     private readonly string _location;
     private readonly Uri _apiUri = new Uri("https://api.videoindexer.ai");
 
+    private const string SubscriptionKeyHeader = "Ocp-Apim-Subscription-Key";
+
     public VideoIndexerClientClassic(string apiKey, string accountId, string location)
     {
         _apiKey = apiKey;
@@ -25,7 +27,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         var handler = new HttpClientHandler();
         handler.AllowAutoRedirect = false;
         var client = new HttpClient(handler);
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
+        client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
 
         // obtain video access token
         var videoTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/AccessToken?allowEdit=true");
@@ -101,13 +103,13 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         var handler = new HttpClientHandler();
         handler.AllowAutoRedirect = false;
         var client = new HttpClient(handler);
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
+        client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
 
         // obtain account access token
         var accountAccessTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
         var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
-        client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
+        client.DefaultRequestHeaders.Remove(SubscriptionKeyHeader);
 
         // upload a video
         var content = new MultipartFormDataContent();
@@ -126,13 +128,13 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         var handler = new HttpClientHandler();
         handler.AllowAutoRedirect = false;
         var client = new HttpClient(handler);
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
+        client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
 
         // obtain account access token
         var accountAccessTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
         var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
-        client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
+        client.DefaultRequestHeaders.Remove(SubscriptionKeyHeader);
 
         // upload a video
         var content = new MultipartFormDataContent();
@@ -146,11 +148,11 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         var videoId = JsonConvert.DeserializeObject<dynamic>(uploadResult)["id"];
 
         // obtain video access token
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _apiKey);
+        client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
         var videoTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true");
         var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
-        client.DefaultRequestHeaders.Remove("Ocp-Apim-Subscription-Key");
+        client.DefaultRequestHeaders.Remove(SubscriptionKeyHeader);
 
         // wait for the video index to finish
         List<TranscriptElement> transcriptElements = new List<TranscriptElement>();
