@@ -38,7 +38,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
 
         var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
 
-        if (processingState != "Processed") return null;
+        if (processingState != IndexingStatus.Processing) return null;
 
         List<TranscriptElement> transcriptElements = new List<TranscriptElement>();
         string language;
