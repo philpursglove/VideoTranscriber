@@ -18,8 +18,12 @@ namespace VideoTranscriberVideoClient
         private string _accountId;
         private VideoIndexerResourceProviderClient _videoIndexerResourceProviderClient;
 
-        public VideoIndexerClientArm()
+        public VideoIndexerClientArm(string subscriptionId, string resourceGroupName, string accountName)
         {
+            _subscriptionId = subscriptionId;
+            _resourceGroupName = resourceGroupName;
+            _accountName = accountName;
+
             // Build Azure Video Indexer resource provider client that has access token through ARM
             _videoIndexerResourceProviderClient = VideoIndexerResourceProviderClient.BuildVideoIndexerResourceProviderClient().Result;
 
