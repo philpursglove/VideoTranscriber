@@ -102,8 +102,6 @@ namespace VideoTranscriberVideoClient
                     ProjectId = projectId
                 };
 
-                Console.WriteLine($"\nGetting access token: {JsonConvert.SerializeObject(accessTokenRequest)}");
-
                 // Set the generateAccessToken (from video indexer) http request content
                 try
                 {
@@ -119,12 +117,11 @@ namespace VideoTranscriberVideoClient
 
                     VerifyStatus(result, System.Net.HttpStatusCode.OK);
                     var jsonResponseBody = await result.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Got access token: {scope} {videoId}, {permission}");
+
                     return JsonConvert.DeserializeObject<GenerateAccessTokenResponse>(jsonResponseBody).AccessToken;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
                     throw;
                 }
             }
@@ -135,7 +132,6 @@ namespace VideoTranscriberVideoClient
             /// <returns> The Account, otherwise throws an exception</returns>
             public async Task<Account> GetAccount()
             {
-                Console.WriteLine($"Getting account {_accountName}.");
                 Account account;
                 try
                 {
@@ -150,13 +146,11 @@ namespace VideoTranscriberVideoClient
                     var jsonResponseBody = await result.Content.ReadAsStringAsync();
                     account = JsonConvert.DeserializeObject<Account>(jsonResponseBody);
                     VerifyValidAccount(account);
-                    Console.WriteLine($"The account ID is {account.Properties.Id}");
-                    Console.WriteLine($"The account location is {account.Location}");
+
                     return account;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
                     throw;
                 }
             }
@@ -165,7 +159,6 @@ namespace VideoTranscriberVideoClient
             {
                 if (string.IsNullOrWhiteSpace(account.Location) || account.Properties == null || string.IsNullOrWhiteSpace(account.Properties.Id))
                 {
-                    Console.WriteLine($"{nameof(_accountName)} {_accountName} not found. Check {nameof(_subscriptionId)}, {nameof(_resourceGroupName)}, {nameof(_accountName)} ar valid.");
                     throw new Exception($"Account {_accountName} not found.");
                 }
             }
