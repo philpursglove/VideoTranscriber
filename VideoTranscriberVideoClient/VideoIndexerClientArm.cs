@@ -27,6 +27,10 @@ namespace VideoTranscriberVideoClient
             // Build Azure Video Indexer resource provider client that has access token through ARM
             _videoIndexerResourceProviderClient = VideoIndexerResourceProviderClient.BuildVideoIndexerResourceProviderClient().Result;
 
+            _videoIndexerResourceProviderClient.SubscriptionId = _subscriptionId;
+            _videoIndexerResourceProviderClient.ResourceGroupName = _resourceGroupName;
+            _videoIndexerResourceProviderClient.AccountName = _accountName;
+
             // Get account details
             var account = _videoIndexerResourceProviderClient.GetAccount().Result;
             _location = account.Location;
@@ -73,6 +77,9 @@ namespace VideoTranscriberVideoClient
         internal class VideoIndexerResourceProviderClient
         {
             private readonly string _armAccessToken;
+            public string SubscriptionId { get; set; }
+            public string ResourceGroupName { get; set; }
+            public string AccountName { get; set; }
             public static async Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
             {
                 var tokenRequestContext = new TokenRequestContext(new[] { $"{AzureResourceManager}/.default" });
@@ -109,7 +116,7 @@ namespace VideoTranscriberVideoClient
                     var httpContent = new StringContent(jsonRequestBody, System.Text.Encoding.UTF8, "application/json");
 
                     // Set request uri
-                    var requestUri = $"{AzureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}/generateAccessToken?api-version={ApiVersion}";
+                    var requestUri = $"{AzureResourceManager}/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{AccountName}/generateAccessToken?api-version={ApiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
@@ -136,7 +143,7 @@ namespace VideoTranscriberVideoClient
                 try
                 {
                     // Set request uri
-                    var requestUri = $"{AzureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}?api-version={ApiVersion}";
+                    var requestUri = $"{AzureResourceManager}/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{AccountName}?api-version={ApiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
@@ -159,7 +166,7 @@ namespace VideoTranscriberVideoClient
             {
                 if (string.IsNullOrWhiteSpace(account.Location) || account.Properties == null || string.IsNullOrWhiteSpace(account.Properties.Id))
                 {
-                    throw new Exception($"Account {_accountName} not found.");
+                    throw new Exception($"Account {AccountName} not found.");
                 }
             }
         }
