@@ -11,11 +11,11 @@ namespace VideoTranscriberVideoClient
         private const string _apiVersion = "2022-08-01";
         private const string _azureResourceManager = "https://management.azure.com";
         private const string _apiUrl = "https://api.videoindexer.ai";
-        private string _subscriptionId;
-        private string _resourceGroupName;
-        private string _accountName;
-        private string _location;
-        private string _accountId;
+        private readonly string _subscriptionId;
+        private readonly string _resourceGroupName;
+        private readonly string _accountName;
+        private readonly string _location;
+        private readonly string _accountId;
         private VideoIndexerResourceProviderClient _videoIndexerResourceProviderClient;
 
         public VideoIndexerClientArm(string subscriptionId, string resourceGroupName, string accountName)
@@ -73,7 +73,7 @@ namespace VideoTranscriberVideoClient
         internal class VideoIndexerResourceProviderClient
         {
             private readonly string _armAccessToken;
-            async static public Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
+            public static async Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
             {
                 var tokenRequestContext = new TokenRequestContext(new[] { $"{_azureResourceManager}/.default" });
                 var tokenRequestResult = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
