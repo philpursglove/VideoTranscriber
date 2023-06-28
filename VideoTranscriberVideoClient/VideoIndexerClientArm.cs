@@ -8,9 +8,9 @@ namespace VideoTranscriberVideoClient
 {
     public class VideoIndexerClientArm : VideoIndexerClientBase, IVideoIndexerClient
     {
-        private const string _apiVersion = "2022-08-01";
-        private const string _azureResourceManager = "https://management.azure.com";
-        private const string _apiUrl = "https://api.videoindexer.ai";
+        private const string ApiVersion = "2022-08-01";
+        private const string AzureResourceManager = "https://management.azure.com";
+        private const string ApiUrl = "https://api.videoindexer.ai";
         private readonly string _subscriptionId;
         private readonly string _resourceGroupName;
         private readonly string _accountName;
@@ -51,7 +51,7 @@ namespace VideoTranscriberVideoClient
                     });
 
 
-                var videoGetIndexRequestResult = await client.GetAsync($"{_apiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
+                var videoGetIndexRequestResult = await client.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
 
             VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
             var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
@@ -75,7 +75,7 @@ namespace VideoTranscriberVideoClient
             private readonly string _armAccessToken;
             public static async Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
             {
-                var tokenRequestContext = new TokenRequestContext(new[] { $"{_azureResourceManager}/.default" });
+                var tokenRequestContext = new TokenRequestContext(new[] { $"{AzureResourceManager}/.default" });
                 var tokenRequestResult = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
                 return new VideoIndexerResourceProviderClient(tokenRequestResult.Token);
             }
@@ -109,7 +109,7 @@ namespace VideoTranscriberVideoClient
                     var httpContent = new StringContent(jsonRequestBody, System.Text.Encoding.UTF8, "application/json");
 
                     // Set request uri
-                    var requestUri = $"{_azureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}/generateAccessToken?api-version={_apiVersion}";
+                    var requestUri = $"{AzureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}/generateAccessToken?api-version={ApiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
@@ -136,7 +136,7 @@ namespace VideoTranscriberVideoClient
                 try
                 {
                     // Set request uri
-                    var requestUri = $"{_azureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}?api-version={_apiVersion}";
+                    var requestUri = $"{AzureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}?api-version={ApiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
