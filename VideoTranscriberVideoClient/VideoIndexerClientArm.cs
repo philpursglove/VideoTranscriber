@@ -122,9 +122,31 @@ namespace VideoTranscriberVideoClient
             throw new NotImplementedException();
         }
 
-        public Task SubmitVideoForIndexing(Uri videoUri, string videoName, Guid videoId, Uri callbackUri)
+        public async Task SubmitVideoForIndexing(Uri videoUri, string videoName, Guid videoGuid, Uri callbackUri)
         {
-            throw new NotImplementedException();
+            var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false
+            };
+            var client = new HttpClient(handler);
+
+            var content = new MultipartFormDataContent();
+
+            var accountAccessToken = await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor, ArmAccessTokenScope.Account);
+
+            // Get the video from URL
+            var queryParams = CreateQueryString(
+                new Dictionary<string, string>()
+                {
+                        {"accessToken", accountAccessToken},
+                        {"name", videoName},
+                        {"privacy", "private"},
+                        {"externalId", videoGuid.ToString()},
+                        {"videoUrl", videoUri.ToString()},
+                        {"callbackUrl", callbackUri.ToString()}
+                });
+
+            _ = await client.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?{queryParams}", content);
         }
 
         internal class VideoIndexerResourceProviderClient
