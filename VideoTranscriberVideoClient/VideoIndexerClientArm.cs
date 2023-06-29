@@ -10,11 +10,11 @@ namespace VideoTranscriberVideoClient
     {
         private const string ApiVersion = "2022-08-01";
         private const string AzureResourceManager = "https://management.azure.com";
-        private string _subscriptionId;
-        private string _resourceGroupName;
-        private string _accountName;
-        private string _location;
-        private string _accountId;
+        private readonly string _subscriptionId;
+        private readonly string _resourceGroupName;
+        private readonly string _accountName;
+        private readonly string _location;
+        private readonly string _accountId;
         private VideoIndexerResourceProviderClient _videoIndexerResourceProviderClient;
 
         public VideoIndexerClientArm(string subscriptionId, string resourceGroupName, string accountName)
@@ -25,6 +25,10 @@ namespace VideoTranscriberVideoClient
 
             // Build Azure Video Indexer resource provider client that has access token through ARM
             _videoIndexerResourceProviderClient = VideoIndexerResourceProviderClient.BuildVideoIndexerResourceProviderClient().Result;
+
+            _videoIndexerResourceProviderClient.SubscriptionId = _subscriptionId;
+            _videoIndexerResourceProviderClient.ResourceGroupName = _resourceGroupName;
+            _videoIndexerResourceProviderClient.AccountName = _accountName;
 
             // Get account details
             var account = _videoIndexerResourceProviderClient.GetAccount().Result;
@@ -72,7 +76,10 @@ namespace VideoTranscriberVideoClient
         internal class VideoIndexerResourceProviderClient
         {
             private readonly string _armAccessToken;
-            async static public Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
+            public string SubscriptionId { get; set; }
+            public string ResourceGroupName { get; set; }
+            public string AccountName { get; set; }
+            public static async Task<VideoIndexerResourceProviderClient> BuildVideoIndexerResourceProviderClient()
             {
                 var tokenRequestContext = new TokenRequestContext(new[] { $"{AzureResourceManager}/.default" });
                 var tokenRequestResult = await new DefaultAzureCredential().GetTokenAsync(tokenRequestContext);
@@ -108,7 +115,7 @@ namespace VideoTranscriberVideoClient
                     var httpContent = new StringContent(jsonRequestBody, System.Text.Encoding.UTF8, "application/json");
 
                     // Set request uri
-                    var requestUri = $"{AzureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}/generateAccessToken?api-version={ApiVersion}";
+                    var requestUri = $"{AzureResourceManager}/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{AccountName}/generateAccessToken?api-version={ApiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
@@ -135,7 +142,7 @@ namespace VideoTranscriberVideoClient
                 try
                 {
                     // Set request uri
-                    var requestUri = $"{AzureResourceManager}/subscriptions/{_subscriptionId}/resourcegroups/{_resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{_accountName}?api-version={ApiVersion}";
+                    var requestUri = $"{AzureResourceManager}/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{AccountName}?api-version={ApiVersion}";
                     var client = new HttpClient(new HttpClientHandler());
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _armAccessToken);
 
@@ -158,7 +165,7 @@ namespace VideoTranscriberVideoClient
             {
                 if (string.IsNullOrWhiteSpace(account.Location) || account.Properties == null || string.IsNullOrWhiteSpace(account.Properties.Id))
                 {
-                    throw new Exception($"Account {_accountName} not found.");
+                    throw new Exception($"Account {AccountName} not found.");
                 }
             }
         }
