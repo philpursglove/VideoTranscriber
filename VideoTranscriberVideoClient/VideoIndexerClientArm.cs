@@ -3,6 +3,7 @@ using Azure.Identity;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Net.Http.Headers;
+using VideoTranscriberCore;
 
 namespace VideoTranscriberVideoClient
 {
@@ -46,21 +47,74 @@ namespace VideoTranscriberVideoClient
             var accountAccessToken = await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor, ArmAccessTokenScope.Account);
 
             string queryParams;
-                queryParams = CreateQueryString(
-                    new Dictionary<string, string>()
-                    {
+            queryParams = CreateQueryString(
+                new Dictionary<string, string>()
+                {
                         {"accessToken", accountAccessToken},
                         {"language", "English"},
-                    });
+                });
 
 
-                var videoGetIndexRequestResult = await client.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
+            var videoGetIndexRequestResult = await client.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
 
             VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
             var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
             string processingState = JsonConvert.DeserializeObject<Video>(videoGetIndexResult).State;
 
-            return new IndexingResult();
+            List<TranscriptElement> transcriptElements = new List<TranscriptElement>();
+            string language = String.Empty;
+            string duration = String.Empty;
+            int speakerCount = 0;
+            List<Speaker> speakers = new List<Speaker>();
+            List<string> keywords = new List<string>();
+
+            if (processingState == IndexingStatus.Processed)
+            {
+                var result = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult);
+
+                var video = result.videos[0];
+                var insights = video.insights;
+                duration = insights.duration;
+                language = insights.sourceLanguage;
+
+                foreach (var speaker in insights.speakers)
+                {
+                    speakers.Add(new Speaker { Id = speaker.id, Name = speaker.name });
+                }
+                speakerCount = speakers.Count;
+
+                foreach (var keyword in insights.keywords)
+                {
+                    keywords.Add((string)keyword.text);
+                }
+
+                var transcript = insights.transcript;
+
+                foreach (var transcriptItem in transcript)
+                {
+                    TranscriptElement element = new TranscriptElement
+                    {
+                        Text = transcriptItem.text,
+                        Confidence = transcriptItem.confidence,
+                        Id = transcriptItem.id,
+                        StartTimeIndex = transcriptItem.instances[0].start,
+                        SpeakerId = transcriptItem.speakerId
+                    };
+                    transcriptElements.Add(element);
+                }
+            }
+
+            return new IndexingResult()
+            {
+                Duration = duration,
+                Language = language,
+                Transcript = transcriptElements,
+                Confidence = transcriptElements.Average(e => e.Confidence),
+                SpeakerCount = speakerCount,
+                Keywords = keywords,
+                Speakers = speakers
+            };
+
         }
 
         public Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
