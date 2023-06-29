@@ -4,6 +4,8 @@ namespace VideoTranscriberVideoClient;
 
 public class VideoIndexerClientBase
 {
+    protected const string ApiUrl = "https://api.videoindexer.ai";
+
     internal string CorrectName(string videoName)
     {
         string correctedName = videoName.Replace(" ", string.Empty);

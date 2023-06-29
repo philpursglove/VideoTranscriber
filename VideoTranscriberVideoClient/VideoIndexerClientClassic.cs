@@ -8,7 +8,6 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
     private readonly string _apiKey;
     private readonly string _accountId;
     private readonly string _location;
-    private readonly Uri _apiUri = new Uri("https://api.videoindexer.ai");
 
     private const string SubscriptionKeyHeader = "Ocp-Apim-Subscription-Key";
 
@@ -30,10 +29,10 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
 
         // obtain video access token
-        var videoTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/AccessToken?allowEdit=true");
+        var videoTokenRequestResult = await client.GetAsync($"{ApiUrl}/auth/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/AccessToken?allowEdit=true");
         var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
-        var videoGetIndexRequestResult = await client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?accessToken={videoAccessToken}&language=English");
+        var videoGetIndexRequestResult = await client.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?accessToken={videoAccessToken}&language=English");
         var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
         var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
@@ -106,7 +105,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
 
         // obtain account access token
-        var accountAccessTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
+        var accountAccessTokenRequestResult = await client.GetAsync($"{ApiUrl}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
         var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         client.DefaultRequestHeaders.Remove(SubscriptionKeyHeader);
@@ -116,7 +115,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
 
         var correctedName = CorrectName(videoName);
 
-        _ = client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUri}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoId.ToString()}&callbackUrl={callbackUri}", content).Result;
+        _ = client.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUri}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoId.ToString()}&callbackUrl={callbackUri}", content).Result;
     }
 
 
@@ -131,7 +130,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
 
         // obtain account access token
-        var accountAccessTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
+        var accountAccessTokenRequestResult = await client.GetAsync($"{ApiUrl}/auth/{_location}/Accounts/{_accountId}/AccessToken?allowEdit=true");
         var accountAccessToken = accountAccessTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         client.DefaultRequestHeaders.Remove(SubscriptionKeyHeader);
@@ -141,7 +140,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
 
         var correctedName = CorrectName(videoName);
 
-        var uploadRequestResult = await client.PostAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid}", content);
+        var uploadRequestResult = await client.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?accessToken={accountAccessToken}&name={correctedName}&privacy=private&videoUrl={videoUrl}&indexingPreset=AudioOnly&streamingPreset=NoStreaming&externalId={videoGuid}", content);
         var uploadResult = await uploadRequestResult.Content.ReadAsStringAsync();
 
         // get the video id from the upload result
@@ -149,7 +148,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
 
         // obtain video access token
         client.DefaultRequestHeaders.Add(SubscriptionKeyHeader, _apiKey);
-        var videoTokenRequestResult = await client.GetAsync($"{_apiUri}/auth/{_location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true");
+        var videoTokenRequestResult = await client.GetAsync($"{ApiUrl}/auth/{_location}/Accounts/{_accountId}/Videos/{videoId}/AccessToken?allowEdit=true");
         var videoAccessToken = videoTokenRequestResult.Content.ReadAsStringAsync().Result.Replace("\"", "");
 
         client.DefaultRequestHeaders.Remove(SubscriptionKeyHeader);
@@ -165,7 +164,7 @@ public class VideoIndexerClientClassic : VideoIndexerClientBase, IVideoIndexerCl
         {
             Thread.Sleep(10000);
 
-            var videoGetIndexRequestResult = await client.GetAsync($"{_apiUri}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English");
+            var videoGetIndexRequestResult = await client.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?accessToken={videoAccessToken}&language=English");
             var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
             var processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
