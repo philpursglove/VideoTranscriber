@@ -17,6 +17,7 @@ namespace VideoTranscriberVideoClient
         private readonly string _location;
         private readonly string _accountId;
         private VideoIndexerResourceProviderClient _videoIndexerResourceProviderClient;
+        private readonly HttpClient _httpClient;
 
         public VideoIndexerClientArm(string subscriptionId, string resourceGroupName, string accountName)
         {
@@ -35,14 +36,16 @@ namespace VideoTranscriberVideoClient
             var account = _videoIndexerResourceProviderClient.GetAccount().Result;
             _location = account.Location;
             _accountId = account.Properties.Id;
-        }
-        public async Task<IndexingResult> GetVideoIndex(string videoIndexerId)
-        {
+
             var handler = new HttpClientHandler
             {
                 AllowAutoRedirect = false
             };
-            var client = new HttpClient(handler);
+            _httpClient = new HttpClient(handler);
+
+        }
+        public async Task<IndexingResult> GetVideoIndex(string videoIndexerId)
+        {
 
             var accountAccessToken = await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor, ArmAccessTokenScope.Account);
 
@@ -55,7 +58,7 @@ namespace VideoTranscriberVideoClient
                 });
 
 
-            var videoGetIndexRequestResult = await client.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
+            var videoGetIndexRequestResult = await _httpClient.GetAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
 
             VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
             var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
@@ -117,37 +120,125 @@ namespace VideoTranscriberVideoClient
 
         }
 
-        public Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
+        public async Task<IndexingResult> IndexVideo(Uri videoUrl, string videoName, Guid videoGuid)
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task SubmitVideoForIndexing(Uri videoUri, string videoName, Guid videoGuid, Uri callbackUri)
-        {
-            var handler = new HttpClientHandler
-            {
-                AllowAutoRedirect = false
-            };
-            var client = new HttpClient(handler);
-
             var content = new MultipartFormDataContent();
 
-            var accountAccessToken = await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor, ArmAccessTokenScope.Account);
+            var accountAccessToken =
+                await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor,
+                    ArmAccessTokenScope.Account);
 
             // Get the video from URL
             var queryParams = CreateQueryString(
                 new Dictionary<string, string>()
                 {
+                    {"accessToken", accountAccessToken},
+                    {"name", videoName},
+                    {"privacy", "private"},
+                    {"externalId", videoGuid.ToString()},
+                    {"videoUrl", videoUrl.ToString()},
+                });
+
+            _ = await _httpClient.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?{queryParams}",
+                content);
+
+            queryParams = CreateQueryString(
+                new Dictionary<string, string>()
+                {
+                    {"accessToken", accountAccessToken},
+                    {"language", "English"},
+                });
+
+            var videoGetIndexRequestResult =
+                await _httpClient.GetAsync(
+                    $"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
+
+            VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
+
+            List<TranscriptElement> transcriptElements = new List<TranscriptElement>();
+            string language = String.Empty;
+            string duration = String.Empty;
+            int speakerCount = 0;
+            List<Speaker> speakers = new List<Speaker>();
+            List<string> keywords = new List<string>();
+
+            while (true)
+            {
+                Thread.Sleep(10000);
+
+                var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
+                string processingState = JsonConvert.DeserializeObject<Video>(videoGetIndexResult).State;
+
+                if (processingState != IndexingStatus.Uploaded && processingState != IndexingStatus.Processing)
+                {
+                    var result = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult);
+
+                    var video = result.videos[0];
+                    var insights = video.insights;
+                    duration = insights.duration;
+                    language = insights.sourceLanguage;
+
+                    foreach (var speaker in insights.speakers)
+                    {
+                        speakers.Add(new Speaker {Id = speaker.id, Name = speaker.name});
+                    }
+
+                    speakerCount = speakers.Count;
+
+                    foreach (var keyword in insights.keywords)
+                    {
+                        keywords.Add((string) keyword.text);
+                    }
+
+                    var transcript = insights.transcript;
+
+                    foreach (var transcriptItem in transcript)
+                    {
+                        TranscriptElement element = new TranscriptElement
+                        {
+                            Text = transcriptItem.text,
+                            Confidence = transcriptItem.confidence,
+                            Id = transcriptItem.id,
+                            StartTimeIndex = transcriptItem.instances[0].start,
+                            SpeakerId = transcriptItem.speakerId
+                        };
+                        transcriptElements.Add(element);
+                    }
+                }
+
+                return new IndexingResult()
+                {
+                    Duration = duration,
+                    Language = language,
+                    Transcript = transcriptElements,
+                    Confidence = transcriptElements.Average(e => e.Confidence),
+                    SpeakerCount = speakerCount,
+                    Keywords = keywords,
+                    Speakers = speakers
+                };
+            }
+        }
+
+        public async Task SubmitVideoForIndexing(Uri videoUri, string videoName, Guid videoGuid, Uri callbackUri)
+            {
+                var content = new MultipartFormDataContent();
+
+                var accountAccessToken = await _videoIndexerResourceProviderClient.GetAccessToken(ArmAccessTokenPermission.Contributor, ArmAccessTokenScope.Account);
+
+                // Get the video from URL
+                var queryParams = CreateQueryString(
+                    new Dictionary<string, string>()
+                    {
                         {"accessToken", accountAccessToken},
                         {"name", videoName},
                         {"privacy", "private"},
                         {"externalId", videoGuid.ToString()},
                         {"videoUrl", videoUri.ToString()},
                         {"callbackUrl", callbackUri.ToString()}
-                });
+                    });
 
-            _ = await client.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?{queryParams}", content);
-        }
+                _ = await _httpClient.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?{queryParams}", content);
+            }
 
         internal class VideoIndexerResourceProviderClient
         {
