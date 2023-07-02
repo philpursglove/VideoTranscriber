@@ -139,8 +139,10 @@ namespace VideoTranscriberVideoClient
                     {"videoUrl", videoUrl.ToString()},
                 });
 
-            _ = await _httpClient.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?{queryParams}",
+            var uploadRequestResult = await _httpClient.PostAsync($"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos?{queryParams}",
                 content);
+            var uploadResult = await uploadRequestResult.Content.ReadAsStringAsync();
+            var videoId = JsonConvert.DeserializeObject<dynamic>(uploadResult)["id"];
 
             queryParams = CreateQueryString(
                 new Dictionary<string, string>()
@@ -151,7 +153,7 @@ namespace VideoTranscriberVideoClient
 
             var videoGetIndexRequestResult =
                 await _httpClient.GetAsync(
-                    $"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoIndexerId}/Index?{queryParams}");
+                    $"{ApiUrl}/{_location}/Accounts/{_accountId}/Videos/{videoId}/Index?{queryParams}");
 
             VerifyStatus(videoGetIndexRequestResult, System.Net.HttpStatusCode.OK);
 
