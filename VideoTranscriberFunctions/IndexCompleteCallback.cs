@@ -1,10 +1,8 @@
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using VideoTranscriberCore;
 using VideoTranscriberData;
 using VideoTranscriberStorage;
@@ -16,32 +14,20 @@ namespace VideoTranscriberFunctions
     {
         [FunctionName("IndexCompleteCallback")]
         public static async Task Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ExecutionContext context)
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ExecutionContext context, 
+            IVideoIndexerClient videoIndexerClient, ITranscriptionDataRepository repository, IStorageClient storageClient)
         {
             string videoIndexerId = req.Query["id"];
             string state = req.Query["state"];
 
             if (state.ToLowerInvariant() == "processed")
             {
-                var config = new ConfigurationBuilder()
-                    .SetBasePath(context.FunctionAppDirectory)
-                    .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true, reloadOnChange: true)
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                    .AddEnvironmentVariables()
-                    .Build();
-
-                // Get the Index record by the id
-                var videoIndexerClient =
-                    new VideoIndexerClientClassic(config["ApiKey"], config["AccountId"], config["Location"]);
-
                 var indexResult = await videoIndexerClient.GetVideoIndex(videoIndexerId);
 
                 // Get the externalId value
                 Guid videoId = indexResult.VideoId;
                 
                 // Look up the record in CosmosDB by the externalId
-                var repository = new TranscriptionDataCosmosRepository(config.GetConnectionString("VideoTranscriberCosmosDb"));
-                
                 // Update the record with the transcription data
                 var transcriptionData = repository.Get(videoId);
                 string[] durationElements = indexResult.Duration.Split(':');
@@ -64,9 +50,6 @@ namespace VideoTranscriberFunctions
                 await repository.Update(updateData);
 
                 // Move the video to the Processed container
-                IStorageClient storageClient =
-                    new AzureStorageClient(config.GetConnectionString("VideoTranscriberStorageAccount"),
-                        config["ContainerName"]);
                 await storageClient.MoveToFolder($"processing/{updateData.OriginalFilename}", "processed");
             }
 
