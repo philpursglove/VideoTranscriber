@@ -15,7 +15,7 @@ public static class SubmitVideos
     [FunctionName("SubmitVideos")]
     public static async Task Run(
         [TimerTrigger("1 * * * * *")]TimerInfo timer, ExecutionContext context, IStorageClient storageClient, 
-        ITranscriptionDataRepository repository, IVideoIndexerClient videoClient)
+        ITranscriptionDataRepository repository, IVideoIndexerClient videoClient, ConfigValues configValues)
     {
         List<string> fileNames = await storageClient.GetFileNames("toBeProcessed");
 
@@ -29,7 +29,7 @@ public static class SubmitVideos
                 Uri fileUri = await storageClient.GetFileUri($"processing/{fileNameWithoutFolder}");
                 Guid videoGuid = data.id;
 
-                videoClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  new Uri(config["CallbackUri"]));
+                videoClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  configValues.CallbackUrl);
 
                 data.TranscriptionStatus = TranscriptionStatus.Transcribing;
                 repository.Update(data);

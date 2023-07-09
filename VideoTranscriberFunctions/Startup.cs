@@ -37,6 +37,10 @@ public class Startup : FunctionsStartup
         builder.Services.AddScoped(typeof(IStorageClient),
             s => new AzureStorageClient(configuration.GetConnectionString("StorageAccount"),
                 configuration["StorageAccountName"]));
+        builder.Services.AddScoped(typeof(ConfigValues), s => new ConfigValues
+        {
+            CallbackUrl = new Uri(configuration["CallbackUri"])
+        });
     }
 
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
