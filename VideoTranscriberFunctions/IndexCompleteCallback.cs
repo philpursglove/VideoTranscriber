@@ -29,7 +29,6 @@ namespace VideoTranscriberFunctions
                 
                 // Look up the record in CosmosDB by the externalId
                 // Update the record with the transcription data
-                var transcriptionData = repository.Get(videoId);
                 string[] durationElements = indexResult.Duration.Split(':');
                 int hours = int.Parse(durationElements[0]);
                 int minutes = int.Parse(durationElements[1]);
