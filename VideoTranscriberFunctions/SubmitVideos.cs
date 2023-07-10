@@ -25,14 +25,14 @@ public static class SubmitVideos
             {
                 string fileNameWithoutFolder = fileName.Substring(fileName.IndexOf("/")+1);
                 TranscriptionData data = await repository.Get(fileNameWithoutFolder);
-                storageClient.MoveToFolder(fileName, "processing");
+                await storageClient.MoveToFolder(fileName, "processing");
                 Uri fileUri = await storageClient.GetFileUri($"processing/{fileNameWithoutFolder}");
                 Guid videoGuid = data.id;
 
-                videoIndexerClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  configValues.CallbackUrl);
+                await videoIndexerClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  configValues.CallbackUrl);
 
                 data.TranscriptionStatus = TranscriptionStatus.Transcribing;
-                repository.Update(data);
+                await repository.Update(data);
             }
         }
     }
