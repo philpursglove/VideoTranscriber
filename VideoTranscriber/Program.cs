@@ -12,12 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSingleton(typeof(ITranscriptionDataRepository),
-    (sp) => new TranscriptionDataCosmosRepository(builder.Configuration.GetConnectionString("VideoTranscriberCosmosDb")));
+    _ => new TranscriptionDataCosmosRepository(builder.Configuration.GetConnectionString("VideoTranscriberCosmosDb")));
 builder.Services.AddScoped(typeof(IStorageClient),
-    (sp) => new AzureStorageClient(builder.Configuration.GetConnectionString("VideoTranscriberStorageAccount"),
+    _ => new AzureStorageClient(builder.Configuration.GetConnectionString("VideoTranscriberStorageAccount"),
         builder.Configuration["ContainerName"]));
 builder.Services.AddScoped(typeof(VideoIndexerClientClassic),
-    (sp) => new VideoIndexerClientClassic(builder.Configuration["ApiKey"], builder.Configuration["AccountId"],
+    _ => new VideoIndexerClientClassic(builder.Configuration["ApiKey"], builder.Configuration["AccountId"],
         builder.Configuration["Location"]));
 
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)

@@ -21,11 +21,11 @@ public class Startup : FunctionsStartup
         switch (indexerType)
         {
             case "arm":
-                builder.Services.AddScoped(typeof(IVideoIndexerClient), s => new VideoIndexerClientArm(configuration["SubscriptionId"], 
+                builder.Services.AddScoped(typeof(IVideoIndexerClient), _ => new VideoIndexerClientArm(configuration["SubscriptionId"], 
                     configuration["ResourceGroupName"], configuration["AccountName"]));
                 break;
             case "classic":
-                builder.Services.AddScoped(typeof(IVideoIndexerClient), s => new VideoIndexerClientClassic(configuration["ApiKey"], 
+                builder.Services.AddScoped(typeof(IVideoIndexerClient), _ => new VideoIndexerClientClassic(configuration["ApiKey"], 
                     configuration["AccountId"], configuration["Location"]));
                 break;
             default:
@@ -33,11 +33,11 @@ public class Startup : FunctionsStartup
         }
 
         builder.Services.AddSingleton(typeof(ITranscriptionDataRepository),
-            s => new TranscriptionDataCosmosRepository(configuration.GetConnectionString("CosmosDbConnectionString")));
+            _ => new TranscriptionDataCosmosRepository(configuration.GetConnectionString("CosmosDbConnectionString")));
         builder.Services.AddScoped(typeof(IStorageClient),
-            s => new AzureStorageClient(configuration.GetConnectionString("StorageAccount"),
+            _ => new AzureStorageClient(configuration.GetConnectionString("StorageAccount"),
                 configuration["StorageAccountName"]));
-        builder.Services.AddScoped(typeof(ConfigValues), s => new ConfigValues
+        builder.Services.AddScoped(typeof(ConfigValues), _ => new ConfigValues
         {
             CallbackUrl = new Uri(configuration["CallbackUri"])
         });
