@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Http.Features;
-using VideoTranscriber;
-using VideoTranscriber.Controllers;
 using VideoTranscriberData;
 using VideoTranscriberStorage;
 using VideoTranscriberVideoClient;
