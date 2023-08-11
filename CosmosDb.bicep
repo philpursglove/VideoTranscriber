@@ -1,5 +1,5 @@
 resource databaseAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
-  name: 'cosmosideotranscriber'
+  name: 'cosmosvideotranscriber'
   location: 'uksouth'
   kind: 'GlobalDocumentDB'
   properties: {
