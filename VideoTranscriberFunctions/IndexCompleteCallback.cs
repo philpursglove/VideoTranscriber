@@ -10,19 +10,29 @@ using VideoTranscriberVideoClient;
 
 namespace VideoTranscriberFunctions
 {
-    public static class IndexCompleteCallback
+    public class IndexCompleteCallback
     {
+        private readonly IVideoIndexerClient _videoIndexerClient;
+        private readonly ITranscriptionDataRepository _repository;
+        private readonly IStorageClient _storageClient;
+
+        public IndexCompleteCallback(IVideoIndexerClient videoIndexerClient, ITranscriptionDataRepository repository, IStorageClient storageClient)
+        {
+            _videoIndexerClient = videoIndexerClient;
+            _repository = repository;
+            _storageClient = storageClient;
+        }
+
         [FunctionName("IndexCompleteCallback")]
-        public static async Task Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ExecutionContext context, 
-            IVideoIndexerClient videoIndexerClient, ITranscriptionDataRepository repository, IStorageClient storageClient)
+        public async Task Run(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req, ExecutionContext context)
         {
             string videoIndexerId = req.Query["id"];
             string state = req.Query["state"];
 
             if (state.ToLowerInvariant() == "processed")
             {
-                var indexResult = await videoIndexerClient.GetVideoIndex(videoIndexerId);
+                var indexResult = await _videoIndexerClient.GetVideoIndex(videoIndexerId);
 
                 // Get the externalId value
                 Guid videoId = indexResult.VideoId;
@@ -37,7 +47,7 @@ namespace VideoTranscriberFunctions
 
                 DateTime endTime = DateTime.UtcNow;
 
-                TranscriptionData updateData = await repository.Get(videoId);
+                TranscriptionData updateData = await _repository.Get(videoId);
                 updateData.Language = indexResult.Language;
                 updateData.Transcript = indexResult.Transcript;
                 updateData.Duration = duration.TotalSeconds;
@@ -46,10 +56,10 @@ namespace VideoTranscriberFunctions
                 updateData.Keywords = indexResult.Keywords;
                 updateData.Speakers = indexResult.Speakers;
                 updateData.TranscriptionStatus = TranscriptionStatus.Transcribed;
-                await repository.Update(updateData);
+                await _repository.Update(updateData);
 
                 // Move the video to the Processed container
-                await storageClient.MoveToFolder($"processing/{updateData.OriginalFilename}", "processed");
+                await _storageClient.MoveToFolder($"processing/{updateData.OriginalFilename}", "processed");
             }
 
         }

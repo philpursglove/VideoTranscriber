@@ -10,29 +10,42 @@ using VideoTranscriberVideoClient;
 
 namespace VideoTranscriberFunctions;
 
-public static class SubmitVideos
+public class SubmitVideos
 {
-    [FunctionName("SubmitVideos")]
-    public static async Task Run(
-        [TimerTrigger("1 * * * * *")]TimerInfo timer, ExecutionContext context, IStorageClient storageClient, 
-        ITranscriptionDataRepository repository, IVideoIndexerClient videoIndexerClient, ConfigValues configValues)
+    private readonly IVideoIndexerClient _videoIndexerClient;
+    private readonly ITranscriptionDataRepository _repository;
+    private readonly IStorageClient _storageClient;
+    private readonly ConfigValues _configValues;
+
+    public SubmitVideos(IVideoIndexerClient videoIndexerClient, ITranscriptionDataRepository repository,
+        IStorageClient storageClient, ConfigValues configValues)
     {
-        List<string> fileNames = await storageClient.GetFileNames("toBeProcessed");
+        _videoIndexerClient = videoIndexerClient;
+        _repository = repository;
+        _storageClient = storageClient;
+        _configValues = configValues;
+    }
+
+    [FunctionName("SubmitVideos")]
+    public async Task Run(
+        [TimerTrigger("1 * * * * *")]TimerInfo timer, ExecutionContext context)
+    {
+        List<string> fileNames = await _storageClient.GetFileNames("toBeProcessed");
 
         if (fileNames.Any())
         {
             foreach (string fileName in fileNames)
             {
                 string fileNameWithoutFolder = fileName.Substring(fileName.IndexOf("/")+1);
-                TranscriptionData data = await repository.Get(fileNameWithoutFolder);
-                await storageClient.MoveToFolder(fileName, "processing");
-                Uri fileUri = await storageClient.GetFileUri($"processing/{fileNameWithoutFolder}");
+                TranscriptionData data = await _repository.Get(fileNameWithoutFolder);
+                await _storageClient.MoveToFolder(fileName, "processing");
+                Uri fileUri = await _storageClient.GetFileUri($"processing/{fileNameWithoutFolder}");
                 Guid videoGuid = data.id;
 
-                await videoIndexerClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  configValues.CallbackUrl);
+                await _videoIndexerClient.SubmitVideoForIndexing(fileUri, fileNameWithoutFolder, videoGuid,  _configValues.CallbackUrl);
 
                 data.TranscriptionStatus = TranscriptionStatus.Transcribing;
-                await repository.Update(data);
+                await _repository.Update(data);
             }
         }
     }
