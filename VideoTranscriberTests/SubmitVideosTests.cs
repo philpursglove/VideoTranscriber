@@ -4,7 +4,7 @@ using VideoTranscriberFunctions;
 using VideoTranscriberStorage;
 using VideoTranscriberVideoClient;
 
-namespace VideoTranscriberTests
+namespace VideoTranscriberTests.Functions
 {
     public class SubmitVideosTests
     {
