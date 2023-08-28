@@ -46,5 +46,16 @@ namespace VideoTranscriberTests.Functions
 
             await _storageClient.Received().MoveToFolder("toBeProcessed/fileName.mp4", "processing");
         }
+
+        [Test]
+        public async Task WhenMultipleFilesArePresentTheyAReAllMovedToTheProcessingFolder()
+        {
+            _storageClient.GetFileNames("toBeProcessed").Returns(new List<string> { "toBeProcessed/fileName1.mp4", "toBeProcessed/fileName2.mp4" });
+            _repository.Get(Arg.Any<string>()).Returns(new TranscriptionData { id = Guid.NewGuid() });
+
+            await _submitVideos.Run(null, null);
+
+            await _storageClient.Received(2).MoveToFolder(Arg.Any<string>(), "processing");
+        }
     }
 }
