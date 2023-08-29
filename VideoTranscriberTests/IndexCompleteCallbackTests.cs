@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Primitives;
 using NSubstitute;
 using NUnit.Framework;
+using VideoTranscriberCore;
 using VideoTranscriberData;
 using VideoTranscriberFunctions;
 using VideoTranscriberStorage;
@@ -43,4 +44,47 @@ public class IndexCompleteCallbackTests
 
         await _videoIndexerClient.DidNotReceive().GetVideoIndex(Arg.Any<string>());
     }
+
+    [Test]
+    public async Task WhenVideoIsProcessedDataIsUpdated()
+    {
+        Guid videoId = Guid.NewGuid();
+
+        HttpRequest request = Substitute.For<HttpRequest>();
+        request.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>
+        {
+            {"id", videoId.ToString()},
+            {"state", "processed"}
+        }));
+
+        _videoIndexerClient.GetVideoIndex(Arg.Any<string>()).Returns(new IndexingResult() { VideoId = videoId, Duration = "1:2:3", Keywords = new List<string>() });
+        _repository.Get(videoId).Returns(new TranscriptionData { id = videoId });
+
+        await _indexCompleteCallback.Run(request, null);
+
+        await _videoIndexerClient.Received().GetVideoIndex(videoId.ToString());
+
+        await _repository.Received().Update(Arg.Any<TranscriptionData>());
+    }
+
+    [Test]
+    public async Task WhenVideoIsProcessedFileIsMovedToProcessedFolder()
+    {
+        Guid videoId = Guid.NewGuid();
+
+        HttpRequest request = Substitute.For<HttpRequest>();
+        request.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>
+        {
+            {"id", videoId.ToString()},
+            {"state", "processed"}
+        }));
+
+        _videoIndexerClient.GetVideoIndex(Arg.Any<string>()).Returns(new IndexingResult() { VideoId = videoId, Duration = "1:2:3", Keywords = new List<string>() });
+        _repository.Get(videoId).Returns(new TranscriptionData { id = videoId });
+
+        await _indexCompleteCallback.Run(request, null);
+
+        await _storageClient.Received().MoveToFolder(Arg.Any<string>(), "processed");
+    }
+
 }
