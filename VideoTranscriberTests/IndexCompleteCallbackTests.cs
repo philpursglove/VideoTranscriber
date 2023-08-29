@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Primitives;
 using NSubstitute;
-using NUnit.Framework;
 using VideoTranscriberCore;
 using VideoTranscriberData;
 using VideoTranscriberFunctions;
