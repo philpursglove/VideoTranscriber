@@ -36,7 +36,7 @@ public class SubmitVideos
         {
             foreach (string fileName in fileNames)
             {
-                string fileNameWithoutFolder = fileName.Substring(fileName.IndexOf("/")+1);
+                string fileNameWithoutFolder = fileName.Substring(fileName.IndexOf("/", StringComparison.InvariantCulture)+1);
                 TranscriptionData data = await _repository.Get(fileNameWithoutFolder);
                 await _storageClient.MoveToFolder(fileName, "processing");
                 Uri fileUri = await _storageClient.GetFileUri($"processing/{fileNameWithoutFolder}");
